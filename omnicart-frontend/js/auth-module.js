@@ -1,17 +1,12 @@
-/**
- * OmniCart AuthModule — Access Guards, Authentication Modal,
- * Role-Switching, and Session Management.
- */
 
 const AuthModule = {
-  currentModalRole: 'buyer', // 'buyer' | 'seller'
-  currentModalMode: 'login', // 'login' | 'register'
+  currentModalRole: 'buyer',
+  currentModalMode: 'login',
   pendingRedirect: null,
 
-  // Guard customer routes (Cart, Saved Products, Checkout, Orders, Profile)
   guardUserClick(targetUrl, event) {
     if (DataStore.currentUser && DataStore.currentUserRole === 'buyer') {
-      return true; // Proceed with navigation
+      return true;
     }
 
     if (event) {
@@ -24,10 +19,9 @@ const AuthModule = {
     return false;
   },
 
-  // Guard merchant routes (Seller Dashboard)
   guardSellerClick(targetUrl, event) {
     if (DataStore.currentSeller && DataStore.currentUserRole === 'seller') {
-      return true; // Proceed with navigation
+      return true;
     }
 
     if (event) {
@@ -60,7 +54,7 @@ const AuthModule = {
 
     const modal = document.getElementById('auth-modal');
     if (!modal) {
-      // If no inline modal on current page, redirect to login.html
+
       const redirectParam = this.pendingRedirect ? `&redirect=${encodeURIComponent(this.pendingRedirect)}` : '';
       window.location.href = `login.html?role=${role}${redirectParam}`;
       return;
@@ -83,11 +77,11 @@ const AuthModule = {
     const sellerTab = document.getElementById('modal-tab-seller');
 
     if (role === 'buyer') {
-      if (buyerTab) buyerTab.className = 'py-2.5 rounded-lg font-semibold transition-all bg-white text-blue-700 shadow-xs border border-slate-200';
-      if (sellerTab) sellerTab.className = 'py-2.5 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-900';
+      if (buyerTab) buyerTab.className = 'py-2.5 rounded font-semibold transition-all bg-[#1c1916] text-[#c8a96e] border border-[#c8a96e]/30 cursor-pointer';
+      if (sellerTab) sellerTab.className = 'py-2.5 rounded font-medium transition-all text-[#9a9188] hover:text-[#b89355] cursor-pointer';
     } else {
-      if (sellerTab) sellerTab.className = 'py-2.5 rounded-lg font-semibold transition-all bg-white text-emerald-700 shadow-xs border border-slate-200';
-      if (buyerTab) buyerTab.className = 'py-2.5 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-900';
+      if (sellerTab) sellerTab.className = 'py-2.5 rounded font-semibold transition-all bg-[#1c1916] text-[#c8a96e] border border-[#c8a96e]/30 cursor-pointer';
+      if (buyerTab) buyerTab.className = 'py-2.5 rounded font-medium transition-all text-[#9a9188] hover:text-[#b89355] cursor-pointer';
     }
 
     this.renderModalForm();
@@ -107,18 +101,46 @@ const AuthModule = {
         container.innerHTML = `
           <div class="mb-4">
             <h3 class="text-lg font-bold text-slate-900">Customer Sign In</h3>
-            <p class="text-xs text-slate-500">Enter your email or phone to continue</p>
+            <p class="text-xs text-slate-500">Enter your credentials to continue shopping</p>
           </div>
-          <form onsubmit="AuthModule.handleCustomerLogin(event)" class="space-y-3.5 text-xs">
+          <form onsubmit="AuthModule.handleCustomerLogin(event)" class="space-y-3.5 text-xs" autocomplete="off" autocorrect="off" autocapitalize="off">
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Email or Mobile Number</label>
-              <input type="text" id="modal-cust-id" required placeholder="name@domain.com or 9876543210" class="clean-input text-xs" />
+              <input
+                type="text"
+                id="modal-cust-id"
+                required
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                placeholder="name@domain.com or 9876543210"
+                class="clean-input text-xs"
+              />
             </div>
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Password</label>
-              <input type="password" id="modal-cust-pw" required placeholder="••••••••" class="clean-input text-xs" />
+              <input
+                type="password"
+                id="modal-cust-pw"
+                required
+                autocomplete="new-password"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                placeholder="••••••••"
+                class="clean-input text-xs"
+              />
             </div>
-            <button type="submit" class="btn-primary w-full py-2.5 text-xs justify-center font-bold">
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-[11px] text-slate-600 cursor-pointer select-none">
+                <input type="checkbox" id="modal-cust-remember" class="accent-blue-600 w-3.5 h-3.5 cursor-pointer" />
+                <span>Save login details on this device</span>
+              </label>
+            </div>
+            <button type="submit" class="btn-primary w-full py-2.5 text-xs justify-center font-bold cursor-pointer">
               Sign In to Account →
             </button>
           </form>
@@ -133,30 +155,70 @@ const AuthModule = {
             <h3 class="text-lg font-bold text-slate-900">Create Customer Account</h3>
             <p class="text-xs text-slate-500">Join OmniCart for fast 20-min delivery</p>
           </div>
-          <form onsubmit="AuthModule.handleCustomerRegister(event)" class="space-y-3 text-xs">
+          <form onsubmit="AuthModule.handleCustomerRegister(event)" class="space-y-3 text-xs" autocomplete="off" autocorrect="off" autocapitalize="off">
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">First Name</label>
-                <input type="text" id="modal-reg-fname" required placeholder="First Name" class="clean-input text-xs" />
+                <input type="text" id="modal-reg-fname" required autocomplete="off" placeholder="First Name" class="clean-input text-xs" />
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Last Name</label>
-                <input type="text" id="modal-reg-lname" required placeholder="Last Name" class="clean-input text-xs" />
+                <input type="text" id="modal-reg-lname" required autocomplete="off" placeholder="Last Name" class="clean-input text-xs" />
               </div>
             </div>
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Email</label>
-              <input type="email" id="modal-reg-email" required placeholder="name@domain.com" class="clean-input text-xs" />
+              <input type="email" id="modal-reg-email" required autocomplete="off" placeholder="name@domain.com" class="clean-input text-xs" />
             </div>
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Phone</label>
-              <input type="tel" id="modal-reg-phone" required placeholder="+91 98765 43210" class="clean-input text-xs" />
+              <input type="tel" id="modal-reg-phone" required autocomplete="off" placeholder="+91 98765 43210" class="clean-input text-xs" />
             </div>
+
+            <!-- Address Section Aligned with Database Schema -->
+            <div class="address-section-box space-y-2">
+              <div class="address-header">
+                <span class="address-title text-[11px]">Delivery Address</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] text-[#5a544b]">Type:</span>
+                  <select id="modal-reg-addr-type" class="clean-select text-xs py-1 px-1.5 bg-white border border-[#d9d2c6] text-[#171513] rounded">
+                    <option value="1">Home</option>
+                    <option value="2">Work</option>
+                    <option value="3">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="address-label text-[10px]">House / Flat No.</label>
+                  <input type="text" id="modal-reg-houseno" required autocomplete="off" placeholder="e.g. Flat 402" class="clean-input text-xs" />
+                </div>
+                <div>
+                  <label class="address-label text-[10px]">Street / Colony / Campus</label>
+                  <input type="text" id="modal-reg-street" required autocomplete="off" placeholder="e.g. IIT BHU, Lanka" class="clean-input text-xs" />
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="address-label text-[10px]">City</label>
+                  <input type="text" id="modal-reg-city" required autocomplete="off" placeholder="e.g. Varanasi" class="clean-input text-xs" />
+                </div>
+                <div>
+                  <label class="address-label text-[10px]">State</label>
+                  <input type="text" id="modal-reg-state" required autocomplete="off" placeholder="e.g. Uttar Pradesh" class="clean-input text-xs" />
+                </div>
+                <div>
+                  <label class="address-label text-[10px]">PIN Code (6 digits)</label>
+                  <input type="text" id="modal-reg-pincode" required autocomplete="off" placeholder="221005" pattern="[0-9]{6}" title="6-digit PIN code" class="clean-input text-xs" />
+                </div>
+              </div>
+            </div>
+
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Password</label>
-              <input type="password" id="modal-reg-pw" required placeholder="Set password" class="clean-input text-xs" />
+              <input type="password" id="modal-reg-pw" required autocomplete="new-password" placeholder="Set password" class="clean-input text-xs" />
             </div>
-            <button type="submit" class="btn-primary w-full py-2.5 text-xs justify-center font-bold">
+            <button type="submit" class="btn-primary w-full py-2.5 text-xs justify-center font-bold cursor-pointer">
               Create Account →
             </button>
           </form>
@@ -167,23 +229,51 @@ const AuthModule = {
         `;
       }
     } else {
-      // Seller
+
       if (this.currentModalMode === 'login') {
         container.innerHTML = `
           <div class="mb-4">
             <h3 class="text-lg font-bold text-slate-900">Merchant Sign In</h3>
             <p class="text-xs text-slate-500">Manage store inventory and price ledgers</p>
           </div>
-          <form onsubmit="AuthModule.handleSellerLogin(event)" class="space-y-3.5 text-xs">
+          <form onsubmit="AuthModule.handleSellerLogin(event)" class="space-y-3.5 text-xs" autocomplete="off" autocorrect="off" autocapitalize="off">
             <div>
-              <label class="block font-semibold text-slate-700 mb-1">Merchant Email</label>
-              <input type="text" id="modal-seller-id" required placeholder="seller@store.in" class="clean-input text-xs" />
+              <label class="block font-semibold text-slate-700 mb-1">Merchant Email or Phone</label>
+              <input
+                type="text"
+                id="modal-seller-id"
+                required
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                placeholder="seller@store.in or +91 98765 43210"
+                class="clean-input text-xs"
+              />
             </div>
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Password</label>
-              <input type="password" id="modal-seller-pw" required placeholder="••••••••" class="clean-input text-xs" />
+              <input
+                type="password"
+                id="modal-seller-pw"
+                required
+                autocomplete="new-password"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                placeholder="••••••••"
+                class="clean-input text-xs"
+              />
             </div>
-            <button type="submit" class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full py-2.5 text-xs justify-center font-bold">
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-[11px] text-slate-600 cursor-pointer select-none">
+                <input type="checkbox" id="modal-seller-remember" class="accent-emerald-600 w-3.5 h-3.5 cursor-pointer" />
+                <span>Save login details on this device</span>
+              </label>
+            </div>
+            <button type="submit" class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full py-2.5 text-xs justify-center font-bold cursor-pointer">
               Access Seller Portal →
             </button>
           </form>
@@ -198,24 +288,40 @@ const AuthModule = {
             <h3 class="text-lg font-bold text-slate-900">Register Merchant Store</h3>
             <p class="text-xs text-slate-500">Sell products with GSTIN registration</p>
           </div>
-          <form onsubmit="AuthModule.handleSellerRegister(event)" class="space-y-3 text-xs">
+          <form onsubmit="AuthModule.handleSellerRegister(event)" class="space-y-3 text-xs" autocomplete="off" autocorrect="off" autocapitalize="off">
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Company / Store Name</label>
-              <input type="text" id="modal-seller-name" required placeholder="e.g. Apex Hardware Pvt Ltd" class="clean-input text-xs" />
+              <input type="text" id="modal-seller-name" required autocomplete="off" placeholder="e.g. Apex Hardware Pvt Ltd" class="clean-input text-xs" />
             </div>
             <div>
               <label class="block font-semibold text-slate-700 mb-1">GSTIN (15-digit)</label>
-              <input type="text" id="modal-seller-gstin" required placeholder="29ABCDE1234F1Z5" class="clean-input text-xs uppercase" />
+              <input type="text" id="modal-seller-gstin" required autocomplete="off" placeholder="29ABCDE1234F1Z5" class="clean-input text-xs uppercase" />
             </div>
-            <div>
-              <label class="block font-semibold text-slate-700 mb-1">Business Email</label>
-              <input type="email" id="modal-seller-email" required placeholder="contact@store.in" class="clean-input text-xs" />
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Business Email</label>
+                <input type="email" id="modal-seller-email" required autocomplete="off" placeholder="contact@store.in" class="clean-input text-xs" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Contact Phone</label>
+                <input type="tel" id="modal-seller-phone" required autocomplete="off" placeholder="+91 800 555 1010" class="clean-input text-xs" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">City</label>
+                <input type="text" id="modal-seller-city" required autocomplete="off" placeholder="e.g. Bengaluru" class="clean-input text-xs" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">State</label>
+                <input type="text" id="modal-seller-state" required autocomplete="off" placeholder="e.g. Karnataka" class="clean-input text-xs" />
+              </div>
             </div>
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Password</label>
-              <input type="password" id="modal-seller-pw2" required placeholder="Set password" class="clean-input text-xs" />
+              <input type="password" id="modal-seller-pw2" required autocomplete="new-password" placeholder="Set password" class="clean-input text-xs" />
             </div>
-            <button type="submit" class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full py-2.5 text-xs justify-center font-bold">
+            <button type="submit" class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full py-2.5 text-xs justify-center font-bold cursor-pointer">
               Register Store →
             </button>
           </form>
@@ -226,16 +332,41 @@ const AuthModule = {
         `;
       }
     }
+
+    if (window.UIModule && typeof window.UIModule.initPasswordToggles === 'function') {
+      window.UIModule.initPasswordToggles(container);
+    }
   },
 
   async handleCustomerLogin(e) {
     e.preventDefault();
-    const id = document.getElementById('modal-cust-id').value.trim();
-    const pw = document.getElementById('modal-cust-pw').value;
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const idInput = document.getElementById('modal-cust-id');
+    const pwInput = document.getElementById('modal-cust-pw');
+    const remember = document.getElementById('modal-cust-remember')?.checked || false;
+    const id = idInput ? idInput.value.trim() : '';
+    const pw = pwInput ? pwInput.value : '';
+
+    if (window.UIModule && window.UIModule.setButtonLoading) {
+      window.UIModule.setButtonLoading(submitBtn, true, 'Signing in...');
+    }
 
     try {
-      const user = await DataStore.loginCustomer(id, pw);
+      const user = await DataStore.loginCustomer(id, pw, remember);
+      if (pwInput) pwInput.value = '';
+      if (idInput && !remember) idInput.value = '';
       this.closeAuthModal();
+
+      if (DataStore.currentUserRole === 'seller' || (user && user.isSeller)) {
+        UIModule.showToast(`Signed in as Merchant: ${DataStore.currentSeller.CompanyName}!`, 'success');
+        UIModule.renderHeader();
+        setTimeout(() => {
+          window.location.href = 'seller-dashboard.html';
+        }, 300);
+        return;
+      }
+
       UIModule.showToast(`Signed in as ${user.FirstName}!`, 'success');
       UIModule.renderHeader();
 
@@ -245,17 +376,36 @@ const AuthModule = {
         setTimeout(() => window.location.reload(), 300);
       }
     } catch (err) {
+      if (pwInput) pwInput.value = '';
       UIModule.showToast(err.message || 'Invalid credentials. Please register first.', 'error');
+    } finally {
+      if (window.UIModule && window.UIModule.setButtonLoading) {
+        window.UIModule.setButtonLoading(submitBtn, false);
+      }
     }
   },
 
   async handleCustomerRegister(e) {
     e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
     const fname = document.getElementById('modal-reg-fname').value.trim();
     const lname = document.getElementById('modal-reg-lname').value.trim();
     const email = document.getElementById('modal-reg-email').value.trim();
     const phone = document.getElementById('modal-reg-phone').value.trim();
+    const addrTypeEl = document.getElementById('modal-reg-addr-type');
+    const addressTypeId = addrTypeEl ? parseInt(addrTypeEl.value, 10) : 1;
+    const addressTypeName = addrTypeEl ? addrTypeEl.options[addrTypeEl.selectedIndex].text : 'Home';
+    const houseNumber = document.getElementById('modal-reg-houseno').value.trim();
+    const street = document.getElementById('modal-reg-street').value.trim();
+    const city = document.getElementById('modal-reg-city').value.trim();
+    const state = document.getElementById('modal-reg-state')?.value.trim() || '';
+    const pincode = document.getElementById('modal-reg-pincode').value.trim();
     const pw = document.getElementById('modal-reg-pw').value;
+
+    if (window.UIModule && window.UIModule.setButtonLoading) {
+      window.UIModule.setButtonLoading(submitBtn, true, 'Creating account...');
+    }
 
     try {
       const user = await DataStore.registerCustomer({
@@ -263,7 +413,17 @@ const AuthModule = {
         lastName: lname,
         email: email,
         phone: phone,
-        password: pw
+        password: pw,
+        address: {
+          addressTypeId: addressTypeId,
+          addressType: addressTypeName,
+          type: addressTypeName,
+          houseNumber: houseNumber,
+          street: street,
+          city: city,
+          state: state,
+          pincode: pincode
+        }
       });
 
       this.closeAuthModal();
@@ -277,16 +437,31 @@ const AuthModule = {
       }
     } catch (err) {
       UIModule.showToast(err.message || 'Registration failed.', 'error');
+    } finally {
+      if (window.UIModule && window.UIModule.setButtonLoading) {
+        window.UIModule.setButtonLoading(submitBtn, false);
+      }
     }
   },
 
   async handleSellerLogin(e) {
     e.preventDefault();
-    const id = document.getElementById('modal-seller-id').value.trim();
-    const pw = document.getElementById('modal-seller-pw').value;
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const idInput = document.getElementById('modal-seller-id');
+    const pwInput = document.getElementById('modal-seller-pw');
+    const remember = document.getElementById('modal-seller-remember')?.checked || false;
+    const id = idInput ? idInput.value.trim() : '';
+    const pw = pwInput ? pwInput.value : '';
+
+    if (window.UIModule && window.UIModule.setButtonLoading) {
+      window.UIModule.setButtonLoading(submitBtn, true, 'Signing in...');
+    }
 
     try {
-      const seller = await DataStore.loginSeller(id, pw);
+      const seller = await DataStore.loginSeller(id, pw, remember);
+      if (pwInput) pwInput.value = '';
+      if (idInput && !remember) idInput.value = '';
       this.closeAuthModal();
       UIModule.showToast(`Authenticated Merchant: ${seller.CompanyName}`, 'success');
       UIModule.renderHeader();
@@ -297,24 +472,39 @@ const AuthModule = {
         window.location.href = 'seller-dashboard.html';
       }
     } catch (err) {
+      if (pwInput) pwInput.value = '';
       UIModule.showToast(err.message || 'Invalid merchant credentials.', 'error');
+    } finally {
+      if (window.UIModule && window.UIModule.setButtonLoading) {
+        window.UIModule.setButtonLoading(submitBtn, false);
+      }
     }
   },
 
   async handleSellerRegister(e) {
     e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
     const name = document.getElementById('modal-seller-name').value.trim();
     const gstin = document.getElementById('modal-seller-gstin').value.trim();
     const email = document.getElementById('modal-seller-email').value.trim();
+    const phone = document.getElementById('modal-seller-phone')?.value.trim() || '+91 800 555 1010';
+    const city = document.getElementById('modal-seller-city')?.value.trim() || 'Bengaluru';
+    const state = document.getElementById('modal-seller-state')?.value.trim() || 'Karnataka';
     const pw = document.getElementById('modal-seller-pw2').value;
+
+    if (window.UIModule && window.UIModule.setButtonLoading) {
+      window.UIModule.setButtonLoading(submitBtn, true, 'Registering store...');
+    }
 
     try {
       const seller = await DataStore.registerSeller({
         companyName: name,
         gstin: gstin,
         email: email,
-        phone: '+91 800 555 1010',
-        city: 'Bengaluru, Karnataka',
+        phone: phone,
+        city: city,
+        state: state,
         password: pw
       });
 
@@ -325,6 +515,10 @@ const AuthModule = {
       window.location.href = 'seller-dashboard.html';
     } catch (err) {
       UIModule.showToast(err.message || 'Store registration failed.', 'error');
+    } finally {
+      if (window.UIModule && window.UIModule.setButtonLoading) {
+        window.UIModule.setButtonLoading(submitBtn, false);
+      }
     }
   },
 

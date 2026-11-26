@@ -1,7 +1,3 @@
-/**
- * OmniCart SavedProductsModule — Wishlist Controller (saved-products.html)
- * Displays saved items with live stock, move to cart actions, and removal triggers.
- */
 
 const SavedProductsModule = {
   init() {
@@ -15,7 +11,16 @@ const SavedProductsModule = {
     const countBadge = document.getElementById('saved-total-count');
 
     if (!DataStore.currentUser || DataStore.currentUserRole !== 'buyer') {
-      if (authPrompt) authPrompt.classList.remove('hidden');
+      if (authPrompt) {
+        authPrompt.innerHTML = UIModule.getPermissionDeniedHtml({
+          title: 'Authentication Required: Access Restricted',
+          message: 'Saved pieces and personalized wishlist curation require an active customer session. Please sign in to view your collection.',
+          requiredRole: 'buyer',
+          returnUrl: 'products.html',
+          actionText: 'Sign In to Access Wishlist'
+        });
+        authPrompt.classList.remove('hidden');
+      }
       if (listWrapper) listWrapper.classList.add('hidden');
       return;
     }
@@ -27,62 +32,65 @@ const SavedProductsModule = {
     const savedItems = DataStore.products.filter(p => savedIds.includes(Number(p.id)));
 
     if (countBadge) {
-      countBadge.innerText = `${savedItems.length} item${savedItems.length === 1 ? '' : 's'}`;
+      countBadge.innerText = `${savedItems.length} curated item${savedItems.length === 1 ? '' : 's'}`;
     }
 
     if (!container) return;
 
     if (savedItems.length === 0) {
       container.innerHTML = `
-        <div class="col-span-full clean-card p-12 text-center text-slate-400">
-          <div class="text-5xl mb-3">❤️</div>
-          <h3 class="text-base font-bold text-slate-700">Your wishlist is empty</h3>
-          <p class="text-xs text-slate-400 mt-1 mb-5">Click the heart icon on any product in our catalog to save it for later.</p>
-          <a href="products.html" class="btn-primary text-xs py-2 px-5">Browse Catalog →</a>
+        <div class="col-span-full">
+          ${UIModule.getEmptyStateHtml({
+            icon: 'saved',
+            title: 'Your Curated Wishlist is Empty',
+            description: 'Click the bookmark icon on any piece in our catalog to track availability and reserve units.',
+            actionText: 'Explore Curated Marketplace →',
+            actionUrl: 'products.html'
+          })}
         </div>
       `;
       return;
     }
 
     container.innerHTML = savedItems.map(p => {
-      const img = (p.images && p.images.length > 0) ? p.images[0].url : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80';
+      const img = DataStore.getProductImage(p);
       const safeName = UIModule.escapeHtml(p.name);
-      const safeCat = UIModule.escapeHtml(p.categoryName || 'General');
+      const safeCat = UIModule.escapeHtml(p.categoryName || 'Curated');
       const safeImg = UIModule.escapeHtml(img);
       const isOutOfStock = p.stockQuantity <= 0;
 
       return `
-        <div class="clean-card product-card p-4 flex flex-col justify-between">
+        <div class="clean-card group flex flex-col justify-between relative overflow-hidden p-5 transition-all duration-300 hover:border-[#c8a96e]/40">
           <div>
-            <div class="img-container h-44 w-full flex items-center justify-center p-2 mb-3 bg-slate-50 rounded-lg relative">
+            <div class="h-48 w-full flex items-center justify-center p-3 mb-4 bg-[#0a0908] rounded border border-[#2a2520] relative overflow-hidden">
               <a href="product-detail.html?id=${encodeURIComponent(p.code || p.id)}" class="w-full h-full flex items-center justify-center">
-                <img src="${safeImg}" alt="${safeName}" class="h-full object-contain" />
+                <img src="${safeImg}" alt="${safeName}" class="h-full w-full object-contain p-2 group-hover:scale-105 transition-transform duration-500" onerror="this.onerror=null; this.src='images/f7369fc9-8a6a-40cb-9090-f8be441e1bfb.jpg';" />
               </a>
               <button
                 onclick="SavedProductsModule.removeFromSaved(${p.id})"
-                class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 border border-slate-200 text-red-500 hover:text-red-700 flex items-center justify-center text-xs shadow-xs"
+                class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[#131110]/85 border border-[#2a2520] text-[#9a9188] hover:text-white flex items-center justify-center text-xs transition-colors"
                 title="Remove from saved"
               >
                 ✕
               </button>
             </div>
 
-            <span class="text-[11px] text-blue-600 font-semibold block">${safeCat}</span>
-            <a href="product-detail.html?id=${encodeURIComponent(p.code || p.id)}" class="font-bold text-slate-900 text-xs hover:text-blue-600 block line-clamp-2 mt-1">
+            <span class="text-[10px] uppercase tracking-[0.15em] text-[#c8a96e] block font-mono mb-1">${safeCat}</span>
+            <a href="product-detail.html?id=${encodeURIComponent(p.code || p.id)}" class="font-serif font-bold text-white text-base hover:text-[#c8a96e] block line-clamp-2 transition-colors">
               ${safeName}
             </a>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 mt-3 flex items-center justify-between">
-            <span class="font-extrabold text-slate-900 text-sm">${UIModule.formatCurrency(p.currentPrice)}</span>
+          <div class="pt-4 border-t border-[#2a2520] mt-4 flex items-center justify-between">
+            <span class="font-serif font-bold text-[#c8a96e] text-lg">${UIModule.formatCurrency(p.currentPrice)}</span>
             ${isOutOfStock ? `
-              <span class="badge badge-red text-xs py-1 px-2.5">Sold Out</span>
+              <span class="badge badge-red text-[10px] py-1 px-2.5">Sold Out</span>
             ` : `
               <button
                 onclick="SavedProductsModule.moveToCart(${p.id})"
-                class="btn-primary text-xs py-1.5 px-3"
+                class="btn-primary text-xs py-1.5 px-3.5"
               >
-                Move to Cart
+                Move to Bag
               </button>
             `}
           </div>
@@ -113,7 +121,7 @@ const SavedProductsModule = {
       DataStore.toggleSavedProduct(productId);
       this.render();
       UIModule.renderHeader();
-      UIModule.showToast(`Moved "${prod.name}" to your shopping cart!`, 'success');
+      UIModule.showToast(`Moved "${prod.name}" to your shopping bag!`, 'success');
     } catch (err) {
       UIModule.showToast(err.message || 'Could not move item to cart.', 'error');
     }

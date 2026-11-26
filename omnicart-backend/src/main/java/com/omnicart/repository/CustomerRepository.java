@@ -10,9 +10,15 @@ import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
-    
+
     @Query("SELECT c FROM Customer c JOIN c.emails e WHERE LOWER(e.emailAddress) = LOWER(:email)")
     Optional<Customer> findByEmail(@Param("email") String email);
+
+    @Query("SELECT c FROM Customer c JOIN c.phones p WHERE p.phoneNumber = :phone")
+    Optional<Customer> findByPhone(@Param("phone") String phone);
+
+    @Query("SELECT c FROM Customer c JOIN c.phones p WHERE p.phoneNumber LIKE CONCAT('%', :digits, '%')")
+    Optional<Customer> findByPhoneContaining(@Param("digits") String digits);
 
     @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM CustomerEmail e WHERE LOWER(e.emailAddress) = LOWER(:email)")
     boolean existsByEmailAddress(@Param("email") String email);

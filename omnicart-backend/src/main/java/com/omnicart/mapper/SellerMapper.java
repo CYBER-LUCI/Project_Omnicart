@@ -12,6 +12,8 @@ public class SellerMapper {
         res.setGstin(seller.getGstin());
         res.setContactEmail(seller.getContactEmail());
         res.setContactPhone(seller.getContactPhone());
+        res.setCity(seller.getCity());
+        res.setState(seller.getState());
         res.setCreatedAt(seller.getCreatedAt());
         return res;
     }

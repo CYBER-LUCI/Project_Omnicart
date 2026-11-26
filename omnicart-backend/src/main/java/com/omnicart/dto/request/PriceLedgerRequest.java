@@ -9,14 +9,19 @@ public class PriceLedgerRequest {
     @PositiveOrZero(message = "Price cannot be negative")
     private BigDecimal price;
 
-    @NotNull(message = "Source ID is required (1: Seller, 2: Auto Discount, 3: Campaign, 4: Bulk, 5: API, 6: Admin)")
-    private Integer sourceId;
+    private Integer sourceId = 1;
+
+    private String changeReason;
 
     public PriceLedgerRequest() {}
 
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
 
-    public Integer getSourceId() { return sourceId; }
+    public Integer getSourceId() { return sourceId != null ? sourceId : 1; }
     public void setSourceId(Integer sourceId) { this.sourceId = sourceId; }
+
+    public String getChangeReason() { return changeReason; }
+    public void setChangeReason(String changeReason) { this.changeReason = changeReason; }
 }
+

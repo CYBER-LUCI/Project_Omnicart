@@ -31,6 +31,12 @@ public class Seller {
     @Column(name = "ContactPhone", nullable = false, length = 20)
     private String contactPhone;
 
+    @Column(name = "City", length = 100)
+    private String city;
+
+    @Column(name = "State", length = 100)
+    private String state;
+
     @Column(name = "PasswordHash", length = 255)
     private String passwordHash;
 
@@ -61,6 +67,12 @@ public class Seller {
 
     public String getContactPhone() { return contactPhone; }
     public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
 
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }

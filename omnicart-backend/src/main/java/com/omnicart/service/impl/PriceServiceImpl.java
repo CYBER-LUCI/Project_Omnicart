@@ -54,14 +54,13 @@ public class PriceServiceImpl implements PriceService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
 
-        PriceLedgerSource source = priceLedgerSourceRepository.findById(request.getSourceId())
-                .orElseThrow(() -> new ResourceNotFoundException("PriceLedgerSource not found with ID: " + request.getSourceId()));
+        Integer sourceId = (request.getSourceId() != null && request.getSourceId() > 0) ? request.getSourceId() : 1;
+        PriceLedgerSource source = priceLedgerSourceRepository.findById(sourceId)
+                .orElseThrow(() -> new ResourceNotFoundException("PriceLedgerSource not found with ID: " + sourceId));
 
-        // Calculate fluctuation against current price
         BigDecimal currentPrice = getCurrentPrice(productId);
         BigDecimal fluctuation = request.getPrice().subtract(currentPrice);
 
-        // Append-only: always insert a new row
         PriceLedger newEntry = new PriceLedger(product, source, request.getPrice(), fluctuation);
         PriceLedger saved = priceLedgerRepository.save(newEntry);
         log.info("Recorded price change for product {}: {} -> {} (Fluctuation: {}) via source {}",

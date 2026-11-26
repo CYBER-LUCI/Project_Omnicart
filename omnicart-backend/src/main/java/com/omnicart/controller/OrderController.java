@@ -70,14 +70,44 @@ public class OrderController {
     @Operation(summary = "Update order shipping status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateShippingStatus(
             @PathVariable Long id,
-            @Valid @RequestBody ShippingStatusUpdateRequest request) {
+            @Valid @RequestBody ShippingStatusUpdateRequest request,
+            @RequestParam(required = false) Long sellerId) {
+        if (sellerId != null && request.getSellerId() == null) {
+            request.setSellerId(sellerId);
+        }
         return ResponseEntity.ok(ApiResponse.success("Shipping status updated", orderService.updateShippingStatus(id, request)));
+    }
+
+    @PutMapping("/{id}/seller-status")
+    @Operation(summary = "Update seller-specific item fulfillment status")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateSellerOrderStatus(
+            @PathVariable Long id,
+            @RequestParam Long sellerId,
+            @Valid @RequestBody ShippingStatusUpdateRequest request) {
+        request.setSellerId(sellerId);
+        return ResponseEntity.ok(ApiResponse.success("Seller shipping status updated", orderService.updateShippingStatus(id, request)));
     }
 
     @PostMapping("/{id}/cancel")
     @Operation(summary = "Cancel order and atomically restore stock")
     public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success("Order cancelled", orderService.cancelOrder(id)));
+    }
+
+    @DeleteMapping("/{orderId}/items/{productId}")
+    @Operation(summary = "Cancel individual item from an order and atomically restore stock")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrderItem(
+            @PathVariable Long orderId,
+            @PathVariable Long productId) {
+        return ResponseEntity.ok(ApiResponse.success("Order item cancelled successfully", orderService.cancelOrderItem(orderId, productId)));
+    }
+
+    @PostMapping("/{orderId}/items/{productId}/cancel")
+    @Operation(summary = "Cancel individual item from an order and atomically restore stock (POST alias)")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrderItemPost(
+            @PathVariable Long orderId,
+            @PathVariable Long productId) {
+        return ResponseEntity.ok(ApiResponse.success("Order item cancelled successfully", orderService.cancelOrderItem(orderId, productId)));
     }
 
     @GetMapping("/{id}/total")

@@ -22,6 +22,15 @@ public class SellerCreateRequest {
     @Size(max = 20)
     private String contactPhone;
 
+    @Size(max = 100)
+    private String city;
+
+    @Size(max = 100)
+    private String state;
+
+    @Size(min = 6, max = 100, message = "Password must be at least 6 characters")
+    private String password;
+
     public SellerCreateRequest() {}
 
     public String getCompanyName() { return companyName; }
@@ -35,4 +44,13 @@ public class SellerCreateRequest {
 
     public String getContactPhone() { return contactPhone; }
     public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

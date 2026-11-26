@@ -1,30 +1,35 @@
-/**
- * OmniCart App — Global Application Initializer
- * Orchestrates cross-cutting concerns: header badges, global search bindings,
- * modal escape triggers, and dropdown backdrop dismissals.
- */
 
 const App = {
   init() {
-    // Initial UI Header Sync
+
     if (window.UIModule) {
+      if (typeof window.UIModule.init === 'function') {
+        window.UIModule.init();
+      } else {
+        window.UIModule.initTheme();
+      }
       window.UIModule.renderHeader();
     }
 
-    // Global Search Bar Handler (Enter key)
     const searchInputs = document.querySelectorAll('.global-search-input');
     searchInputs.forEach(input => {
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
+          e.preventDefault();
           const val = input.value.trim();
           if (val) {
-            window.location.href = `products.html?search=${encodeURIComponent(val)}`;
+            if (window.location.pathname.endsWith('products.html') && window.CatalogModule) {
+              const catSearch = document.getElementById('catalog-search-input');
+              if (catSearch) catSearch.value = val;
+              window.CatalogModule.submitSearch();
+            } else {
+              window.location.href = 'products.html?search=' + encodeURIComponent(val);
+            }
           }
         }
       });
     });
 
-    // Close Auth Dropdown when clicking outside
     document.addEventListener('click', (e) => {
       const dropdown = document.getElementById('auth-dropdown-menu');
       const toggleBtn = e.target.closest('button[onclick*="toggleAuthDropdown"]');
@@ -33,7 +38,6 @@ const App = {
       }
     });
 
-    // Close Modals on Escape Key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         const authModal = document.getElementById('auth-modal');

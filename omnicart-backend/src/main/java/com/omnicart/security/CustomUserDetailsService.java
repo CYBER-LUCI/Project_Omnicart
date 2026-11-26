@@ -27,22 +27,25 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Check for customer
+
         Optional<Customer> customerOpt = customerRepository.findByEmail(email);
         if (customerOpt.isPresent()) {
             Customer c = customerOpt.get();
-            // Default demo password hash: 'password'
-            return new UserPrincipal(c.getId(), email, passwordEncoder.encode("password"), Role.CUSTOMER);
+            String hash = (c.getPasswordHash() != null && !c.getPasswordHash().isBlank())
+                    ? c.getPasswordHash()
+                    : "";
+            return new UserPrincipal(c.getId(), email, hash, Role.CUSTOMER);
         }
 
-        // Check for seller
         Optional<Seller> sellerOpt = sellerRepository.findByContactEmailIgnoreCase(email);
         if (sellerOpt.isPresent()) {
             Seller s = sellerOpt.get();
-            return new UserPrincipal(s.getId(), email, passwordEncoder.encode("password"), Role.SELLER);
+            String hash = (s.getPasswordHash() != null && !s.getPasswordHash().isBlank())
+                    ? s.getPasswordHash()
+                    : "";
+            return new UserPrincipal(s.getId(), email, hash, Role.SELLER);
         }
 
-        // Check for built-in admin
         if ("admin@omnicart.com".equalsIgnoreCase(email)) {
             return new UserPrincipal(0L, email, passwordEncoder.encode("admin123"), Role.ADMIN);
         }

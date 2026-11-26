@@ -89,4 +89,11 @@ public class SellerController {
         Page<OrderResponse> orders = orderService.getSellerOrders(id, PageRequest.of(page, size));
         return ResponseEntity.ok(ApiResponse.success(new PageResponse<>(orders)));
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete seller account")
+    public ResponseEntity<ApiResponse<Void>> deleteSeller(@PathVariable Long id) {
+        sellerService.deleteSeller(id);
+        return ResponseEntity.ok(ApiResponse.success("Seller account deleted", null));
+    }
 }

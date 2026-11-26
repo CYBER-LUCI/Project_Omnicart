@@ -22,7 +22,7 @@ public class AuthRegisterRequest {
     @NotBlank(message = "Phone is required")
     private String phone;
 
-    private String role = "CUSTOMER"; // CUSTOMER or SELLER
+    private String role = "CUSTOMER";
 
     public AuthRegisterRequest() {}
 

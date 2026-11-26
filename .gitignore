@@ -24,3 +24,8 @@ node_modules/
 .idea/
 .DS_Store
 Thumbs.db
+*.log
+uploads/
+scratch/
+.system_generated/
+

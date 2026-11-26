@@ -15,11 +15,13 @@ public interface CustomerService {
     CustomerResponse updateCustomer(Long id, CustomerUpdateRequest request);
     void deleteCustomer(Long id);
     Page<CustomerResponse> getAllCustomers(Pageable pageable);
-    CustomerResponse addEmail(Long customerId, EmailRequest request);
+    com.omnicart.dto.response.CustomerEmailResponse addEmail(Long customerId, EmailRequest request);
     java.util.List<com.omnicart.dto.response.CustomerEmailResponse> getCustomerEmails(Long customerId);
     void removeEmail(Long customerId, Long emailId);
-    CustomerResponse addPhone(Long customerId, PhoneRequest request);
+    void removeEmailByAddress(Long customerId, String emailAddress);
+    com.omnicart.dto.response.CustomerPhoneResponse addPhone(Long customerId, PhoneRequest request);
     java.util.List<com.omnicart.dto.response.CustomerPhoneResponse> getCustomerPhones(Long customerId);
     void removePhone(Long customerId, Long phoneId);
+    void removePhoneByNumber(Long customerId, String phoneNumber);
     CustomerDashboardResponse getCustomerDashboard(Long customerId);
 }

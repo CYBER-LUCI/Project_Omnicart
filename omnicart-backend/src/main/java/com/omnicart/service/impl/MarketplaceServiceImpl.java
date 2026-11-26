@@ -43,7 +43,6 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         stats.setTotalOrders(orderRepository.count());
         stats.setLowStockProducts(productRepository.findLowStockProducts(10).size());
 
-        // Platform GMV = sum of all non-cancelled order items
         BigDecimal gmv = orderRepository.findAll().stream()
                 .filter(o -> o.getShippingStatus().getId() != 6)
                 .map(o -> orderDetailsRepository.calculateOrderTotal(o.getId()))

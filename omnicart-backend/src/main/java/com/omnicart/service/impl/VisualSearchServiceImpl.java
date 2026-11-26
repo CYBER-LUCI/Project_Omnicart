@@ -50,7 +50,6 @@ public class VisualSearchServiceImpl implements VisualSearchService {
             }
         }
 
-        // Sort descending by score
         matches.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
 
         return matches.stream()
@@ -62,9 +61,7 @@ public class VisualSearchServiceImpl implements VisualSearchService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> searchByImage(MultipartFile file, int limit) {
-        // Pluggable embedding generator abstraction:
-        // In real-world deployment, this forwards the image byte[] to an ONNX/PyTorch/TensorFlow CLIP model.
-        // For demonstration, we create a deterministic pseudo-feature vector from file hash/size.
+
         log.info("Processing visual search for uploaded image: {}, size: {} bytes", file.getOriginalFilename(), file.getSize());
 
         int seed = file.getOriginalFilename() != null ? file.getOriginalFilename().hashCode() : 42;

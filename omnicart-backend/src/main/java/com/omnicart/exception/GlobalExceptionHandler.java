@@ -32,14 +32,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({DuplicateEmailException.class, DuplicateGSTINException.class})
+    @ExceptionHandler({DuplicateEmailException.class, DuplicateGSTINException.class, DuplicatePhoneException.class})
     public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex, HttpServletRequest request) {
         log.warn("Conflict error: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage(), request.getRequestURI());
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler({InvalidPriceException.class, InvalidOrderException.class, InvalidCategoryException.class, InvalidShippingStatusException.class})
+    @ExceptionHandler({InvalidPriceException.class, InvalidOrderException.class, InvalidCategoryException.class, InvalidShippingStatusException.class, IllegalArgumentException.class, IllegalStateException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex, HttpServletRequest request) {
         log.warn("Bad request: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), request.getRequestURI());

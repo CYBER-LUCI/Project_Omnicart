@@ -16,5 +16,6 @@ public interface OrderService {
     Page<OrderResponse> getSellerOrders(Long sellerId, Pageable pageable);
     OrderResponse updateShippingStatus(Long orderId, ShippingStatusUpdateRequest request);
     OrderResponse cancelOrder(Long orderId);
+    OrderResponse cancelOrderItem(Long orderId, Long productId);
     BigDecimal calculateOrderTotal(Long orderId);
 }

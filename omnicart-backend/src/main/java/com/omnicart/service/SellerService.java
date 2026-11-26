@@ -18,4 +18,5 @@ public interface SellerService {
     Page<ProductResponse> getSellerProducts(Long sellerId, Pageable pageable);
     List<ProductResponse> getSellerInventory(Long sellerId);
     SellerDashboardResponse getSellerDashboard(Long sellerId);
+    void deleteSeller(Long id);
 }

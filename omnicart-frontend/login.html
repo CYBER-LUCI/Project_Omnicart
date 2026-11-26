@@ -1,134 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>OmniCart — Sign In or Register</title>
+  <title>OmniCart - Identification & Access</title>
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.min.js?v=31.0"></script>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
-  <!-- Custom Clean Styles -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=31.0">
 
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            serif: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
           }
         }
       }
     }
   </script>
+
+  <script>
+      (function () {
+        var theme = localStorage.getItem('omnicart_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'light') {
+          document.documentElement.classList.remove('dark', 'dark-theme');
+          document.documentElement.classList.add('light-theme');
+        } else {
+          document.documentElement.classList.remove('light-theme');
+          document.documentElement.classList.add('dark', 'dark-theme');
+        }
+      })();
+  </script>
+  <style>
+    /* Suppress browser native password reveal icon in Edge/IE to prevent duplicate eye icons */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear,
+    input::-ms-reveal,
+    input::-ms-clear {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans text-base">
 
-  <!-- Toast Container -->
-  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 pointer-events-none max-w-sm w-full"></div>
+<body class="min-h-screen flex flex-col font-sans text-base">
 
-  <!-- SIMPLE AUTH HEADER -->
-  <header class="bg-white border-b border-slate-200">
+  <div id="toast-container"
+    class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-auto max-w-md">
+  </div>
+
+  <header class="bg-[#0e0c0a]/95 backdrop-blur-md border-b border-[#2a2520]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
       <a href="index.html" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-xs">
-          🛒
+        <div
+          class="w-10 h-10 rounded bg-[#1a1714] border border-[#c8a96e]/40 text-[#e8c98e] flex items-center justify-center font-serif font-bold text-xl shadow-inner">
+          Ω
         </div>
         <div>
-          <span class="text-2xl font-bold tracking-tight text-slate-900 block leading-tight">OmniCart</span>
-          <span class="text-xs text-slate-500 font-medium block">Secure Access Portal</span>
+          <span class="text-2xl font-serif font-bold tracking-tight text-white block leading-tight">OMNICART</span>
+          <span class="text-[10px] tracking-[0.2em] text-[#c8a96e] uppercase block font-medium">Access Portal</span>
         </div>
       </a>
 
-      <a href="index.html" class="btn-secondary py-2 px-3.5 text-xs font-semibold">
-        ← Return to Store
-      </a>
+      <div class="flex items-center gap-3">
+
+        <button type="button" id="theme-toggle-btn" onclick="UIModule.toggleTheme()" class="theme-toggle-btn"
+          title="Switch between Light and Dark mode">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"></circle>
+            <path
+              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42">
+            </path>
+          </svg>
+          <span class="hidden sm:inline font-semibold">Light</span>
+        </button>
+
+        <a href="index.html" class="btn-secondary py-2 px-3.5 text-xs font-semibold">
+          ← Storefront
+        </a>
+      </div>
     </div>
   </header>
 
-  <!-- MAIN LOGIN & REGISTRATION CONTAINER -->
   <main class="flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
     <div class="w-full max-w-md space-y-6">
 
-      <!-- Dynamic Context Banner if Redirected -->
-      <div id="redirect-context-banner" class="hidden p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex items-center gap-2.5">
-        <span class="text-base">🔐</span>
-        <span id="redirect-context-text">Please sign in to access this feature.</span>
+      <div id="redirect-context-banner"
+        class="hidden p-4 rounded bg-[#161412] border border-[#c8a96e]/40 text-xs text-[#e8e2d9] flex items-center gap-3">
+        <svg class="w-5 h-5 text-[#c8a96e]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span id="redirect-context-text" class="leading-relaxed">Please authenticate to access your curated
+          selection.</span>
       </div>
 
-      <!-- Main Clean Card -->
-      <div class="clean-card p-6 sm:p-8 bg-white shadow-xl">
+      <div class="clean-card p-6 sm:p-8 bg-[#131110] border border-[#2a2520] shadow-2xl">
 
-        <!-- Role Selector Tabs -->
-        <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 mb-6 text-xs font-semibold">
-          <button
-            id="tab-role-buyer"
-            onclick="LoginPage.setRole('buyer')"
-            class="py-2.5 rounded-lg transition-all bg-white text-blue-700 shadow-xs border border-slate-200"
-          >
+        <div class="grid grid-cols-2 gap-2 p-1 rounded bg-[#0a0908] border border-[#2a2520] mb-6 text-xs font-semibold">
+          <button id="tab-role-buyer" onclick="LoginPage.setRole('buyer')"
+            class="py-2.5 rounded font-semibold transition-all bg-[#1a1714] text-[#c8a96e] border border-[#c8a96e]/30">
             Customer Access
           </button>
-          <button
-            id="tab-role-seller"
-            onclick="LoginPage.setRole('seller')"
-            class="py-2.5 rounded-lg transition-all text-slate-600 hover:text-slate-900"
-          >
-            Merchant Seller
+          <button id="tab-role-seller" onclick="LoginPage.setRole('seller')"
+            class="py-2.5 rounded font-medium transition-all text-[#9a9188] hover:text-[#e8e2d9]">
+            Merchant Partner
           </button>
         </div>
 
-        <!-- Mode Switcher (Sign In vs Register) -->
-        <div class="flex items-center justify-between pb-3 mb-5 border-b border-slate-100 text-xs">
+        <div class="flex items-center justify-between pb-3 mb-5 border-b border-[#2a2520] text-xs">
           <div>
-            <h2 id="form-heading-title" class="text-xl font-bold text-slate-900">Customer Sign In</h2>
-            <p id="form-heading-subtitle" class="text-xs text-slate-500 mt-0.5">Enter your credentials to continue shopping</p>
+            <h2 id="form-heading-title" class="text-xl font-serif font-bold text-white">Client Sign In</h2>
+            <p id="form-heading-subtitle" class="text-xs text-[#9a9188] mt-0.5">Enter credentials to continue shopping
+            </p>
           </div>
-          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg">
-            <button
-              id="mode-btn-login"
-              onclick="LoginPage.setMode('login')"
-              class="px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-xs"
-            >
+          <div class="flex items-center gap-1 bg-[#0a0908] p-1 rounded border border-[#2a2520]">
+            <button id="mode-btn-login" onclick="LoginPage.setMode('login')"
+              class="px-2.5 py-1 rounded text-xs font-semibold bg-[#1a1714] text-[#c8a96e] border border-[#c8a96e]/30">
               Sign In
             </button>
-            <button
-              id="mode-btn-register"
-              onclick="LoginPage.setMode('register')"
-              class="px-2.5 py-1 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-900"
-            >
+            <button id="mode-btn-register" onclick="LoginPage.setMode('register')"
+              class="px-2.5 py-1 rounded text-xs font-semibold text-[#9a9188] hover:text-[#e8e2d9]">
               Register
             </button>
           </div>
         </div>
 
-        <!-- Dynamic Form Body -->
         <div id="login-form-container">
-          <!-- Rendered via LoginPage -->
+
         </div>
 
       </div>
 
-      <!-- Footer Info -->
-      <p class="text-center text-xs text-slate-400">
-        OmniCart E-Commerce • Enterprise DBMS Frontend Architecture
-      </p>
-
     </div>
   </main>
 
-  <!-- JAVASCRIPT MODULES -->
-  <script src="js/data-store.js"></script>
-  <script src="js/ui-module.js"></script>
-  <script src="js/auth-module.js"></script>
+  <script src="js/data-store.js?v=31.0"></script>
+  <script src="js/ui-module.js?v=31.0"></script>
+  <script src="js/auth-module.js?v=31.0"></script>
 
   <script>
     const LoginPage = {
@@ -150,17 +177,38 @@
           this.showContextMessage(reqRedirect);
         }
 
-        // If already logged in, automatically redirect
         if (this.role === 'buyer' && DataStore.currentUser && DataStore.currentUserRole === 'buyer') {
-          window.location.href = this.redirectUrl || 'index.html';
-          return;
-        }
-        if (this.role === 'seller' && DataStore.currentSeller && DataStore.currentUserRole === 'seller') {
-          window.location.href = this.redirectUrl || 'seller-dashboard.html';
-          return;
+          this.showLoggedInBanner('buyer', DataStore.currentUser.FirstName || 'Customer');
+        } else if (this.role === 'seller' && DataStore.currentSeller && DataStore.currentUserRole === 'seller') {
+          this.showLoggedInBanner('seller', DataStore.currentSeller.CompanyName || 'Merchant Partner');
         }
 
         this.render();
+      },
+
+      showLoggedInBanner(role, name) {
+        const banner = document.getElementById('redirect-context-banner');
+        const text = document.getElementById('redirect-context-text');
+        if (!banner || !text) return;
+        const target = role === 'seller' ? 'seller-dashboard.html' : 'index.html';
+        text.innerHTML = `You are signed in as <strong>${UIModule.escapeHtml(name)}</strong>. Enter credentials below to switch accounts, or <a href="${target}" class="text-[#c8a96e] underline font-bold ml-1">continue to store →</a>`;
+        banner.classList.remove('hidden');
+      },
+
+      clearInputs() {
+        try {
+          document.querySelectorAll('input[type="password"]').forEach(el => { el.value = ''; });
+          const custRemember = document.getElementById('cust-remember');
+          const custId = document.getElementById('cust-id');
+          if (custId && (!custRemember || !custRemember.checked)) {
+            custId.value = '';
+          }
+          const sellerRemember = document.getElementById('seller-remember');
+          const sellerId = document.getElementById('seller-id');
+          if (sellerId && (!sellerRemember || !sellerRemember.checked)) {
+            sellerId.value = '';
+          }
+        } catch (_) { }
       },
 
       showContextMessage(redirect) {
@@ -171,21 +219,21 @@
         const urlParams = new URLSearchParams(window.location.search);
         const reason = urlParams.get('reason');
 
-        let msg = 'Please sign in to access your account.';
+        let msg = 'Please authenticate to access your account.';
         if (reason === 'cart') {
-          msg = '🛒 Customer sign-in required: Please log in to add items to your cart and make purchases.';
+          msg = 'Please sign in to add items to your cart and complete checkout.';
         } else if (redirect.includes('cart.html')) {
-          msg = 'Please sign in to view and manage your shopping cart.';
+          msg = 'Please sign in to access and manage your shopping bag.';
         } else if (redirect.includes('orders.html')) {
-          msg = 'Please sign in to view your orders and track live deliveries.';
+          msg = 'Please sign in to view your orders and track live 20-min fulfillment.';
         } else if (redirect.includes('saved-products.html')) {
-          msg = 'Please sign in to access your Saved Products (Wishlist).';
+          msg = 'Please sign in to access your Curated Wishlist.';
         } else if (redirect.includes('customer-profile.html')) {
-          msg = 'Please sign in to view and manage your customer profile and addresses.';
+          msg = 'Please sign in to access your client dossier and saved addresses.';
         } else if (redirect.includes('checkout.html')) {
-          msg = 'Please sign in to select delivery addresses and complete checkout.';
+          msg = 'Please sign in to select shipping destinations and finalize settlement.';
         } else if (redirect.includes('seller-dashboard.html')) {
-          msg = 'Please sign in with merchant credentials to access the Seller Portal.';
+          msg = 'Please sign in with merchant partner credentials to access the Seller Portal.';
         }
 
         text.innerText = msg;
@@ -211,48 +259,73 @@
         const subtitle = document.getElementById('form-heading-subtitle');
         const container = document.getElementById('login-form-container');
 
-        // Role Tab Styling
         if (this.role === 'buyer') {
-          buyerTab.className = 'py-2.5 rounded-lg transition-all bg-white text-blue-700 shadow-xs border border-slate-200';
-          sellerTab.className = 'py-2.5 rounded-lg transition-all text-slate-600 hover:text-slate-900';
+          buyerTab.className = 'py-2.5 rounded font-semibold transition-all bg-[#1a1714] text-[#c8a96e] border border-[#c8a96e]/30';
+          sellerTab.className = 'py-2.5 rounded font-medium transition-all text-[#9a9188] hover:text-[#e8e2d9]';
         } else {
-          sellerTab.className = 'py-2.5 rounded-lg transition-all bg-white text-emerald-700 shadow-xs border border-slate-200';
-          buyerTab.className = 'py-2.5 rounded-lg transition-all text-slate-600 hover:text-slate-900';
+          sellerTab.className = 'py-2.5 rounded font-semibold transition-all bg-[#1a1714] text-[#c8a96e] border border-[#c8a96e]/30';
+          buyerTab.className = 'py-2.5 rounded font-medium transition-all text-[#9a9188] hover:text-[#e8e2d9]';
         }
 
-        // Mode Button Styling
         if (this.mode === 'login') {
-          loginBtn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-xs';
-          regBtn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-900';
-          title.innerText = this.role === 'buyer' ? 'Customer Sign In' : 'Merchant Sign In';
-          subtitle.innerText = this.role === 'buyer' ? 'Enter your credentials to continue shopping' : 'Sign in to manage store inventory and orders';
+          loginBtn.className = 'px-2.5 py-1 rounded text-xs font-semibold bg-[#1a1714] text-[#c8a96e] border border-[#c8a96e]/30';
+          regBtn.className = 'px-2.5 py-1 rounded text-xs font-semibold text-[#9a9188] hover:text-[#e8e2d9]';
+          title.innerText = this.role === 'buyer' ? 'Client Sign In' : 'Merchant Partner Sign In';
+          subtitle.innerText = this.role === 'buyer' ? 'Enter your credentials to continue shopping' : 'Sign in to manage warehouse inventory and live orders';
         } else {
-          regBtn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-xs';
-          loginBtn.className = 'px-2.5 py-1 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-900';
-          title.innerText = this.role === 'buyer' ? 'Create Customer Account' : 'Register Merchant Store';
-          subtitle.innerText = this.role === 'buyer' ? 'Fill details to create your OmniCart buyer account' : 'Register your business to sell products in Rupees (₹)';
+          regBtn.className = 'px-2.5 py-1 rounded text-xs font-semibold bg-[#1a1714] text-[#c8a96e] border border-[#c8a96e]/30';
+          loginBtn.className = 'px-2.5 py-1 rounded text-xs font-semibold text-[#9a9188] hover:text-[#e8e2d9]';
+          title.innerText = this.role === 'buyer' ? 'Create Client Account' : 'Register Merchant Partner';
+          subtitle.innerText = this.role === 'buyer' ? 'Fill details to create your OmniCart client profile' : 'Register your enterprise to sell products in INR (₹)';
         }
 
-        // Form Content
         if (this.role === 'buyer') {
           if (this.mode === 'login') {
             container.innerHTML = `
-              <form onsubmit="LoginPage.submitCustomerLogin(event)" class="space-y-4 text-xs">
+              <form onsubmit="LoginPage.submitCustomerLogin(event)" class="space-y-4 text-xs" autocomplete="off" autocorrect="off" autocapitalize="off">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Email or Mobile Number</label>
-                  <input type="text" id="cust-id" required placeholder="e.g. name@example.com or 9876543210" class="clean-input text-xs" />
+                  <label class="block font-semibold text-[#9a9188] mb-1">Email or Mobile Number</label>
+                  <input
+                    type="text"
+                    id="cust-id"
+                    required
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    data-lpignore="true"
+                    placeholder="e.g. name@example.com or 9876543210"
+                    class="clean-input text-xs"
+                  />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Password</label>
-                  <input type="password" id="cust-pw" required placeholder="Enter your password" class="clean-input text-xs" />
+                  <label class="block font-semibold text-[#9a9188] mb-1">Password</label>
+                  <input
+                    type="password"
+                    id="cust-pw"
+                    required
+                    autocomplete="new-password"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    data-lpignore="true"
+                    placeholder="Enter your password"
+                    class="clean-input text-xs"
+                  />
                 </div>
-                <button type="submit" class="btn-primary w-full py-3 text-xs justify-center font-bold shadow-xs">
+                <div class="flex items-center justify-between pt-1">
+                  <label class="flex items-center gap-2 text-[11px] text-[#9a9188] cursor-pointer select-none">
+                    <input type="checkbox" id="cust-remember" class="accent-[#c8a96e] w-3.5 h-3.5 cursor-pointer" />
+                    <span>Save login details on this device</span>
+                  </label>
+                </div>
+                <button type="submit" class="btn-primary w-full py-3 text-xs justify-center font-bold cursor-pointer">
                   Sign In as Customer →
                 </button>
               </form>
-              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Need an account?</span>
-                <button type="button" onclick="LoginPage.setMode('register')" class="text-blue-600 font-bold hover:underline">Register Now →</button>
+              <div class="mt-4 pt-3 border-t border-[#2a2520] flex items-center justify-between text-xs">
+                <span class="text-[#9a9188]">Need an account?</span>
+                <button type="button" onclick="LoginPage.setMode('register')" class="text-[#c8a96e] font-bold hover:underline cursor-pointer">Register Now →</button>
               </div>
             `;
           } else {
@@ -260,135 +333,238 @@
               <form onsubmit="LoginPage.submitCustomerRegister(event)" class="space-y-3.5 text-xs">
                 <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label class="block font-semibold text-slate-700 mb-1">First Name</label>
+                    <label class="block font-semibold text-[#9a9188] mb-1">First Name</label>
                     <input type="text" id="reg-fname" required placeholder="First Name" class="clean-input text-xs" />
                   </div>
                   <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Last Name</label>
+                    <label class="block font-semibold text-[#9a9188] mb-1">Last Name</label>
                     <input type="text" id="reg-lname" required placeholder="Last Name" class="clean-input text-xs" />
                   </div>
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                  <label class="block font-semibold text-[#9a9188] mb-1">Email Address</label>
                   <input type="email" id="reg-email" required placeholder="name@domain.com" class="clean-input text-xs" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Mobile Number</label>
+                  <label class="block font-semibold text-[#9a9188] mb-1">Mobile Number</label>
                   <input type="tel" id="reg-phone" required placeholder="+91 98765 43210" class="clean-input text-xs" />
                 </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Delivery Address</label>
-                  <input type="text" id="reg-street" required placeholder="Flat / House No., Street, Area" class="clean-input text-xs mb-2" />
+                <div class="address-section-box space-y-2">
+                  <div class="address-header">
+                    <span class="address-title">Delivery Address</span>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[11px] text-[#5a544b]">Type:</span>
+                      <select id="reg-addr-type" class="clean-select text-xs py-1 px-2">
+                        <option value="1">Home</option>
+                        <option value="2">Work</option>
+                        <option value="3">Other</option>
+                      </select>
+                    </div>
+                  </div>
                   <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="reg-city" required placeholder="City" class="clean-input text-xs" />
-                    <input type="text" id="reg-pincode" required placeholder="PIN Code" class="clean-input text-xs" />
+                    <div>
+                      <label class="address-label">House / Flat No.</label>
+                      <input type="text" id="reg-houseno" required placeholder="Flat 402, Cyber Heights" class="clean-input text-xs" />
+                    </div>
+                    <div>
+                      <label class="address-label">Street / Street No.</label>
+                      <input type="text" id="reg-street" required placeholder="100 Feet Ring Road" class="clean-input text-xs" />
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <div>
+                      <label class="address-label">City</label>
+                      <input type="text" id="reg-city" required placeholder="e.g. Varanasi" class="clean-input text-xs" />
+                    </div>
+                    <div>
+                      <label class="address-label">State</label>
+                      <input type="text" id="reg-state" required placeholder="e.g. Uttar Pradesh" class="clean-input text-xs" />
+                    </div>
+                    <div>
+                      <label class="address-label">PIN Code</label>
+                      <input type="text" id="reg-pincode" required placeholder="221005" pattern="[0-9]{6}" title="6-digit PIN code" class="clean-input text-xs" />
+                    </div>
                   </div>
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Password</label>
+                  <label class="block font-semibold text-[#9a9188] mb-1">Password</label>
                   <input type="password" id="reg-pw" required placeholder="Choose a secure password" class="clean-input text-xs" />
                 </div>
-                <button type="submit" class="btn-primary w-full py-3 text-xs justify-center font-bold shadow-xs">
+                <button type="submit" class="btn-primary w-full py-3 text-xs justify-center font-bold">
                   Create Customer Account →
                 </button>
               </form>
-              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Already have an account?</span>
-                <button type="button" onclick="LoginPage.setMode('login')" class="text-blue-600 font-bold hover:underline">Sign In →</button>
+              <div class="mt-4 pt-3 border-t border-[#2a2520] flex items-center justify-between text-xs">
+                <span class="text-[#9a9188]">Already have an account?</span>
+                <button type="button" onclick="LoginPage.setMode('login')" class="text-[#c8a96e] font-bold hover:underline">Sign In →</button>
               </div>
             `;
           }
         } else {
-          // Seller
+
           if (this.mode === 'login') {
             container.innerHTML = `
-              <form onsubmit="LoginPage.submitSellerLogin(event)" class="space-y-4 text-xs">
+              <form onsubmit="LoginPage.submitSellerLogin(event)" class="space-y-4 text-xs" autocomplete="off" autocorrect="off" autocapitalize="off">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Merchant Store Email or ID</label>
-                  <input type="text" id="seller-id" required placeholder="e.g. orders@company.in or SELL-101" class="clean-input text-xs" />
+                  <label class="block font-semibold text-[#9a9188] mb-1">Merchant Store Email or Phone</label>
+                  <input
+                    type="text"
+                    id="seller-id"
+                    required
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    data-lpignore="true"
+                    placeholder="e.g. seller@omnicart.com or +91 98765 43210"
+                    class="clean-input text-xs"
+                  />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Password</label>
-                  <input type="password" id="seller-pw" required placeholder="Enter password" class="clean-input text-xs" />
+                  <label class="block font-semibold text-[#9a9188] mb-1">Merchant Password</label>
+                  <input
+                    type="password"
+                    id="seller-pw"
+                    required
+                    autocomplete="new-password"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    data-lpignore="true"
+                    placeholder="Enter password"
+                    class="clean-input text-xs"
+                  />
                 </div>
-                <button type="submit" class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full py-3 text-xs justify-center font-bold shadow-xs">
+                <div class="flex items-center justify-between pt-1">
+                  <label class="flex items-center gap-2 text-[11px] text-[#9a9188] cursor-pointer select-none">
+                    <input type="checkbox" id="seller-remember" class="accent-[#c8a96e] w-3.5 h-3.5 cursor-pointer" />
+                    <span>Save login details on this device</span>
+                  </label>
+                </div>
+                <button type="submit" class="btn-primary w-full py-3 text-xs justify-center font-bold cursor-pointer">
                   Sign In to Merchant Center →
                 </button>
               </form>
-              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-500">New merchant?</span>
-                <button type="button" onclick="LoginPage.setMode('register')" class="text-emerald-700 font-bold hover:underline">Register Store →</button>
+              <div class="mt-4 pt-3 border-t border-[#2a2520] flex items-center justify-between text-xs">
+                <span class="text-[#9a9188]">New merchant?</span>
+                <button type="button" onclick="LoginPage.setMode('register')" class="text-[#c8a96e] font-bold hover:underline cursor-pointer">Register Store →</button>
               </div>
             `;
           } else {
             container.innerHTML = `
               <form onsubmit="LoginPage.submitSellerRegister(event)" class="space-y-3.5 text-xs">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Store / Business Name</label>
+                  <label class="block font-semibold text-[#9a9188] mb-1">Store / Business Name</label>
                   <input type="text" id="seller-reg-name" required placeholder="e.g. Apex Hardware Pvt Ltd" class="clean-input text-xs" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">GSTIN Number (15 Digits)</label>
+                  <label class="block font-semibold text-[#9a9188] mb-1">GSTIN Number (15 Digits)</label>
                   <input type="text" id="seller-reg-gstin" required placeholder="e.g. 29ABCDE1234F1Z5" class="clean-input text-xs uppercase" />
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Business Email</label>
+                    <label class="block font-semibold text-[#9a9188] mb-1">Business Email</label>
                     <input type="email" id="seller-reg-email" required placeholder="contact@store.in" class="clean-input text-xs" />
                   </div>
                   <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Contact Phone</label>
+                    <label class="block font-semibold text-[#9a9188] mb-1">Contact Phone</label>
                     <input type="tel" id="seller-reg-phone" required placeholder="+91 800 555 1010" class="clean-input text-xs" />
                   </div>
                 </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">City & State</label>
-                  <input type="text" id="seller-reg-city" required placeholder="e.g. Bengaluru, Karnataka" class="clean-input text-xs" />
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block font-semibold text-[#9a9188] mb-1">City</label>
+                    <input type="text" id="seller-reg-city" required placeholder="e.g. Bengaluru" class="clean-input text-xs" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-[#9a9188] mb-1">State</label>
+                    <input type="text" id="seller-reg-state" required placeholder="e.g. Karnataka" class="clean-input text-xs" />
+                  </div>
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Password</label>
+                  <label class="block font-semibold text-[#9a9188] mb-1">Password</label>
                   <input type="password" id="seller-reg-pw" required placeholder="Set merchant password" class="clean-input text-xs" />
                 </div>
-                <button type="submit" class="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full py-3 text-xs justify-center font-bold shadow-xs">
+                <button type="submit" class="btn-primary w-full py-3 text-xs justify-center font-bold">
                   Register Merchant Store →
                 </button>
               </form>
-              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Already registered?</span>
-                <button type="button" onclick="LoginPage.setMode('login')" class="text-emerald-700 font-bold hover:underline">Merchant Sign In →</button>
+              <div class="mt-4 pt-3 border-t border-[#2a2520] flex items-center justify-between text-xs">
+                <span class="text-[#9a9188]">Already registered?</span>
+                <button type="button" onclick="LoginPage.setMode('login')" class="text-[#c8a96e] font-bold hover:underline">Merchant Sign In →</button>
               </div>
             `;
           }
+        }
+
+        if (window.UIModule && typeof window.UIModule.initPasswordToggles === 'function') {
+          window.UIModule.initPasswordToggles(container);
         }
       },
 
       async submitCustomerLogin(e) {
         e.preventDefault();
-        const id = document.getElementById('cust-id').value.trim();
-        const pw = document.getElementById('cust-pw').value;
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const idInput = document.getElementById('cust-id');
+        const pwInput = document.getElementById('cust-pw');
+        const remember = document.getElementById('cust-remember')?.checked || false;
+        const id = idInput ? idInput.value.trim() : '';
+        const pw = pwInput ? pwInput.value : '';
+
+        if (window.UIModule && window.UIModule.setButtonLoading) {
+          window.UIModule.setButtonLoading(submitBtn, true, 'Signing in...');
+        }
 
         try {
-          const customer = await DataStore.loginCustomer(id, pw);
-          UIModule.showToast(`Signed in as ${customer.FirstName} ${customer.LastName}`, 'success');
+          const result = await DataStore.loginCustomer(id, pw, remember);
+          if (pwInput) pwInput.value = '';
+          if (idInput) idInput.value = '';
+
+          if (DataStore.currentUserRole === 'seller' || (result && result.isSeller)) {
+            UIModule.showToast(`Signed in as Merchant: ${DataStore.currentSeller.CompanyName}`, 'success');
+            setTimeout(() => {
+              window.location.href = 'seller-dashboard.html';
+            }, 500);
+            return;
+          }
+
+          UIModule.showToast(`Signed in as ${result.FirstName || result.username || 'Customer'}`, 'success');
 
           setTimeout(() => {
             window.location.href = this.redirectUrl || 'index.html';
           }, 500);
         } catch (err) {
+          if (pwInput) pwInput.value = '';
           UIModule.showToast(err.message || 'Invalid credentials. Please register first.', 'error');
+        } finally {
+          if (window.UIModule && window.UIModule.setButtonLoading) {
+            window.UIModule.setButtonLoading(submitBtn, false);
+          }
         }
       },
 
       async submitCustomerRegister(e) {
         e.preventDefault();
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
         const fname = document.getElementById('reg-fname').value.trim();
         const lname = document.getElementById('reg-lname').value.trim();
         const email = document.getElementById('reg-email').value.trim();
         const phone = document.getElementById('reg-phone').value.trim();
+        const addrTypeEl = document.getElementById('reg-addr-type');
+        const addressTypeId = addrTypeEl ? parseInt(addrTypeEl.value, 10) : 1;
+        const addressTypeName = addrTypeEl ? addrTypeEl.options[addrTypeEl.selectedIndex].text : 'Home';
+        const houseNumber = document.getElementById('reg-houseno').value.trim();
         const street = document.getElementById('reg-street').value.trim();
         const city = document.getElementById('reg-city').value.trim();
+        const state = document.getElementById('reg-state')?.value.trim() || '';
         const pincode = document.getElementById('reg-pincode').value.trim();
         const pw = document.getElementById('reg-pw').value;
+
+        if (window.UIModule && window.UIModule.setButtonLoading) {
+          window.UIModule.setButtonLoading(submitBtn, true, 'Creating account...');
+        }
 
         try {
           const customer = await DataStore.registerCustomer({
@@ -398,8 +574,13 @@
             phone: phone,
             password: pw,
             address: {
+              addressTypeId: addressTypeId,
+              addressType: addressTypeName,
+              type: addressTypeName,
+              houseNumber: houseNumber,
               street: street,
               city: city,
+              state: state,
               pincode: pincode
             }
           });
@@ -411,34 +592,62 @@
           }, 500);
         } catch (err) {
           UIModule.showToast(err.message || 'Registration failed. Please try again.', 'error');
+        } finally {
+          if (window.UIModule && window.UIModule.setButtonLoading) {
+            window.UIModule.setButtonLoading(submitBtn, false);
+          }
         }
       },
 
       async submitSellerLogin(e) {
         e.preventDefault();
-        const id = document.getElementById('seller-id').value.trim();
-        const pw = document.getElementById('seller-pw').value;
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const idInput = document.getElementById('seller-id');
+        const pwInput = document.getElementById('seller-pw');
+        const remember = document.getElementById('seller-remember')?.checked || false;
+        const id = idInput ? idInput.value.trim() : '';
+        const pw = pwInput ? pwInput.value : '';
+
+        if (window.UIModule && window.UIModule.setButtonLoading) {
+          window.UIModule.setButtonLoading(submitBtn, true, 'Signing in...');
+        }
 
         try {
-          const seller = await DataStore.loginSeller(id, pw);
+          const seller = await DataStore.loginSeller(id, pw, remember);
+          if (pwInput) pwInput.value = '';
+          if (idInput) idInput.value = '';
+
           UIModule.showToast(`Authenticated Merchant: ${seller.CompanyName}`, 'success');
 
           setTimeout(() => {
-            window.location.href = this.redirectUrl !== 'index.html' ? this.redirectUrl : 'seller-dashboard.html';
+            window.location.href = 'seller-dashboard.html';
           }, 500);
         } catch (err) {
+          if (pwInput) pwInput.value = '';
           UIModule.showToast(err.message || 'Invalid merchant credentials.', 'error');
+        } finally {
+          if (window.UIModule && window.UIModule.setButtonLoading) {
+            window.UIModule.setButtonLoading(submitBtn, false);
+          }
         }
       },
 
       async submitSellerRegister(e) {
         e.preventDefault();
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
         const name = document.getElementById('seller-reg-name').value.trim();
         const gstin = document.getElementById('seller-reg-gstin').value.trim();
         const email = document.getElementById('seller-reg-email').value.trim();
         const phone = document.getElementById('seller-reg-phone').value.trim();
         const city = document.getElementById('seller-reg-city').value.trim();
+        const state = document.getElementById('seller-reg-state').value.trim();
         const pw = document.getElementById('seller-reg-pw').value;
+
+        if (window.UIModule && window.UIModule.setButtonLoading) {
+          window.UIModule.setButtonLoading(submitBtn, true, 'Registering store...');
+        }
 
         try {
           const seller = await DataStore.registerSeller({
@@ -447,6 +656,7 @@
             email: email,
             phone: phone,
             city: city,
+            state: state,
             password: pw
           });
 
@@ -457,6 +667,10 @@
           }, 500);
         } catch (err) {
           UIModule.showToast(err.message || 'Store registration failed.', 'error');
+        } finally {
+          if (window.UIModule && window.UIModule.setButtonLoading) {
+            window.UIModule.setButtonLoading(submitBtn, false);
+          }
         }
       }
     };
@@ -466,11 +680,9 @@
     });
 
     window.addEventListener('pageshow', (event) => {
-      // Clear inputs if restored from bfcache
       LoginPage.clearInputs();
-      setTimeout(() => LoginPage.clearInputs(), 50);
-      setTimeout(() => LoginPage.clearInputs(), 200);
     });
   </script>
 </body>
+
 </html>

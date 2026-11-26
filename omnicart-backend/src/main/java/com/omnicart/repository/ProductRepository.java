@@ -20,10 +20,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> findByIdWithPessimisticLock(@Param("id") Long id);
 
+    Optional<Product> findByNameIgnoreCase(String name);
+
+    Optional<Product> findByNameIgnoreCaseAndSellerId(String name, Long sellerId);
+
     Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
-    
+
     Page<Product> findBySellerId(Long sellerId, Pageable pageable);
-    
+
     @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Product> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
@@ -34,6 +38,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findSellerLowStockProducts(@Param("sellerId") Long sellerId, @Param("threshold") int threshold);
 
     long countBySellerId(Long sellerId);
-    
+
     long countByCategoryId(Long categoryId);
+
+    @Query("SELECT COALESCE(SUM(p.stockQuantity), 0) FROM Product p WHERE LOWER(p.name) = LOWER(:name)")
+    Integer findTotalStockByName(@Param("name") String name);
+
+    @Query("SELECT COALESCE(SUM(p2.stockQuantity), 0) FROM Product p2 WHERE LOWER(p2.name) = (SELECT LOWER(p1.name) FROM Product p1 WHERE p1.id = :productId)")
+    Integer findTotalStockByProductId(@Param("productId") Long productId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM Product WHERE ProductID = :id", nativeQuery = true)
+    void deleteProductByIdNative(@Param("id") Long id);
 }

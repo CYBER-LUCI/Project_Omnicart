@@ -100,7 +100,7 @@ public class OrderServiceTest {
 
         assertNotNull(response);
         assertEquals(1001L, response.getId());
-        assertEquals(8, mockProduct.getStockQuantity()); // 10 - 2 = 8
+        assertEquals(8, mockProduct.getStockQuantity());
         assertEquals(new BigDecimal("159998.00"), response.getTotalAmount());
 
         verify(productRepository, times(1)).save(mockProduct);
@@ -128,7 +128,7 @@ public class OrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
         assertThrows(InsufficientStockException.class, () -> orderService.placeOrder(request));
-        assertEquals(1, mockProduct.getStockQuantity()); // Stock remains untouched
+        assertEquals(1, mockProduct.getStockQuantity());
         verify(orderPaymentRepository, never()).save(any());
     }
 }

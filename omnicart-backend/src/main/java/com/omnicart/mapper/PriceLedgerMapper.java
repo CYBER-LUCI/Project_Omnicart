@@ -13,6 +13,10 @@ public class PriceLedgerMapper {
         res.setPrice(ledger.getPrice());
         res.setPriceFluctuation(ledger.getPriceFluctuation());
         res.setRecordedAt(ledger.getRecordedAt());
+        res.setDemandFactor(ledger.getDemandFactor());
+        res.setScarcityFactor(ledger.getScarcityFactor());
+        res.setCompetitionFactor(ledger.getCompetitionFactor());
+        res.setChangeReason(ledger.getChangeReason());
         return res;
     }
 }

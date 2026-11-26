@@ -1,12 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem('omnicart_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark', 'dark-theme');
+          document.documentElement.classList.remove('light-theme');
+        } else {
+          document.documentElement.classList.remove('dark', 'dark-theme');
+          document.documentElement.classList.add('light-theme');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OmniCart — Checkout</title>
 
   <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.min.js?v=31.0"></script>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,10 +30,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Custom Clean Styles -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=31.0">
 
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -27,8 +44,21 @@
       }
     }
   </script>
+  <style>
+    /* Suppress browser native password reveal icon in Edge/IE to prevent duplicate eye icons */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear,
+    input::-ms-reveal,
+    input::-ms-clear {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans text-base">
+<body class="min-h-screen flex flex-col font-sans text-base">
 
   <!-- Toast Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 pointer-events-none max-w-sm w-full"></div>
@@ -38,25 +68,26 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
       
       <!-- Brand Logo -->
-      <a href="index.html" class="flex items-center gap-3 shrink-0">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-sm">
-          🛒
-        </div>
-        <div>
-          <span class="text-2xl font-bold tracking-tight text-slate-900 block leading-tight">OmniCart</span>
-          <span class="text-xs text-slate-500 font-medium block">Secure Checkout</span>
-        </div>
-      </a>
+      <div class="flex items-center gap-3 shrink-0">
+        <a href="index.html" class="nav-logo">
+          Omni<span>cart</span>
+        </a>
+        <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-[#c8a96e]/30 bg-[#c8a96e]/10 text-[#8a6828] dark:text-[#c8a96e]">Secure Checkout</span>
+      </div>
 
       <!-- Right Header Actions -->
-      <div class="flex items-center gap-3">
+      <div id="header-right-actions" class="flex items-center gap-3 shrink-0">
+        <button type="button" class="theme-toggle-btn" onclick="UIModule.toggleTheme()" title="Switch Theme">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>
+          <span class="hidden sm:inline font-semibold">Theme</span>
+        </button>
         <!-- Saved Products Link (Guarded) -->
         <a
           href="saved-products.html"
           onclick="return AuthModule.guardUserClick('saved-products.html', event)"
           class="flex items-center gap-1.5 p-2 rounded-lg text-slate-700 hover:bg-slate-100 text-xs font-semibold"
         >
-          <span>❤️</span>
+          <span><svg class="w-4 h-4 text-slate-500 fill-current inline" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>
           <span class="hidden sm:inline">Saved</span>
           <span id="header-saved-badge" class="badge badge-blue text-[11px] saved-count-badge">0</span>
         </a>
@@ -97,9 +128,7 @@
           <a href="orders.html" onclick="return AuthModule.guardUserClick('orders.html', event)" class="nav-tab">Track Orders</a>
           <a href="customer-profile.html" onclick="return AuthModule.guardUserClick('customer-profile.html', event)" class="nav-tab">My Profile</a>
         </div>
-        <a href="seller-dashboard.html" onclick="return AuthModule.guardSellerClick('seller-dashboard.html', event)" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3.5 py-1.5 rounded-lg transition-colors shrink-0">
-          Seller Portal ↗
-        </a>
+        
       </div>
     </div>
   </header>
@@ -120,7 +149,7 @@
         <!-- STEP 1: Customer Contact Information -->
         <div class="clean-card p-6">
           <div class="flex items-center gap-3 pb-3 mb-4 border-b border-slate-100">
-            <span class="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+            <span class="w-7 h-7 rounded-full bg-[#c8a96e] text-[#131110] text-xs font-black flex items-center justify-center shadow-xs">1</span>
             <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Customer Details</h2>
           </div>
 
@@ -133,10 +162,10 @@
         <div class="clean-card p-6">
           <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
             <div class="flex items-center gap-3">
-              <span class="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">2</span>
-              <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Shipping Address</h2>
+              <span class="w-7 h-7 rounded-full bg-[#c8a96e] text-[#131110] text-xs font-black flex items-center justify-center shadow-xs">2</span>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-[#e8e2d9] uppercase tracking-wider">Shipping Address</h2>
             </div>
-            <a href="customer-profile.html" class="text-xs text-blue-600 font-semibold hover:underline">
+            <a href="customer-profile.html" class="text-xs text-[#8a6828] dark:text-[#c8a96e] font-semibold hover:underline">
               + Manage Addresses
             </a>
           </div>
@@ -146,37 +175,54 @@
           </div>
         </div>
 
-        <!-- STEP 3: Payment Method Selection -->
+        <!-- STEP 3: Payment Method Selection (Exactly 2 Options) -->
         <div class="clean-card p-6">
-          <div class="flex items-center gap-3 pb-3 mb-4 border-b border-slate-100">
-            <span class="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">3</span>
-            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Payment Method</h2>
+          <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-[#221e1a]">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-[#c8a96e] text-[#131110] text-xs font-black flex items-center justify-center shadow-xs">3</span>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-[#e8e2d9] uppercase tracking-wider">Payment Method</h2>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-[#8a6828] dark:text-[#c8a96e] bg-[#c8a96e]/10 dark:bg-[#c8a96e]/15 px-2.5 py-1 rounded-lg border border-[#c8a96e]/30 dark:border-[#c8a96e]/40 font-semibold">
+              <svg class="w-3.5 h-3.5 text-[#8a6828] dark:text-[#c8a96e]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <span>Razorpay Verified</span>
+            </div>
           </div>
 
           <div class="space-y-3 text-sm">
-            <label class="p-4 rounded-xl border border-blue-500 bg-blue-50/40 flex items-center gap-3 cursor-pointer transition-colors">
-              <input type="radio" name="payment-method" checked onchange="CheckoutModule.selectPaymentMethod('UPI Instant Transfer (Google Pay / PhonePe / Paytm)')" class="text-blue-600 w-5 h-5" />
-              <div>
-                <strong class="text-slate-900 text-base block">UPI Instant Transfer (Recommended)</strong>
-                <span class="text-xs text-slate-500">Google Pay, PhonePe, Paytm (Zero Transaction Fee)</span>
+            <!-- Option 1: Pay via Razorpay -->
+            <label id="rail-option-razorpay" class="payment-rail-card active" onclick="CheckoutModule.selectPaymentMethod('Pay via Razorpay')">
+              <input id="radio-method-razorpay" type="radio" name="payment-method" checked class="w-5 h-5 accent-[#c8a96e] cursor-pointer" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <strong class="payment-rail-title text-base font-bold">Pay via Razorpay</strong>
+                    <span class="payment-rail-badge text-[10px] font-bold px-2 py-0.5 rounded">RECOMMENDED</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-[#9a9188]">
+                    <span class="payment-method-chip px-1.5 py-0.5 rounded border">UPI</span>
+                    <span class="payment-method-chip px-1.5 py-0.5 rounded border">Cards</span>
+                    <span class="payment-method-chip px-1.5 py-0.5 rounded border">NetBanking</span>
+                  </div>
+                </div>
+                <span class="payment-rail-desc text-xs block mt-1">UPI (Google Pay, PhonePe, Paytm, QR), Credit & Debit Cards, Net Banking • Instant Settlement</span>
               </div>
             </label>
 
-            <label class="p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center gap-3 cursor-pointer transition-colors">
-              <input type="radio" name="payment-method" onchange="CheckoutModule.selectPaymentMethod('Credit / Debit Card')" class="text-blue-600 w-5 h-5" />
-              <div>
-                <strong class="text-slate-900 text-base block">Credit / Debit Card</strong>
-                <span class="text-xs text-slate-500">Visa, Mastercard, RuPay Cards</span>
+            <!-- Option 2: Cash on Delivery (COD) -->
+            <label id="rail-option-cod" class="payment-rail-card" onclick="CheckoutModule.selectPaymentMethod('Cash on Delivery')">
+              <input id="radio-method-cod" type="radio" name="payment-method" class="w-5 h-5 accent-[#c8a96e] cursor-pointer" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <strong class="payment-rail-title text-base font-bold">Cash on Delivery (COD)</strong>
+                  <span class="payment-rail-subbadge text-[10px] font-semibold px-2 py-0.5 rounded text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">ZERO ADVANCE</span>
+                </div>
+                <span class="payment-rail-desc text-xs block mt-1">Pay cash or UPI upon verified doorstep delivery (Zero advance payment)</span>
               </div>
             </label>
+          </div>
 
-            <label class="p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center gap-3 cursor-pointer transition-colors">
-              <input type="radio" name="payment-method" onchange="CheckoutModule.selectPaymentMethod('Cash on Delivery')" class="text-blue-600 w-5 h-5" />
-              <div>
-                <strong class="text-slate-900 text-base block">Cash on Delivery</strong>
-                <span class="text-xs text-slate-500">Pay cash upon verified doorstep delivery</span>
-              </div>
-            </label>
+          <div id="checkout-payment-notice" class="payment-notice-razorpay p-3.5 rounded-xl text-xs flex items-start gap-2.5 mt-3 transition-colors">
+            <span id="checkout-payment-notice-text"><strong class="font-semibold text-[#8a6828] dark:text-[#c8a96e]">Razorpay Gateway Active:</strong> Clicking below will open the official Razorpay checkout portal for instant UPI, Cards, and Net Banking payment.</span>
           </div>
         </div>
 
@@ -207,9 +253,9 @@
               <span>Discount Voucher:</span>
               <strong id="summary-discount" class="text-emerald-700">-₹0</strong>
             </div>
-            <div class="pt-3 border-t border-slate-200 flex justify-between text-slate-900 font-bold text-lg">
-              <span>Total to Pay:</span>
-              <strong id="summary-total" class="text-blue-600 font-extrabold text-2xl">₹0</strong>
+            <div class="pt-3 border-t border-slate-200 dark:border-[#2a2520] flex justify-between text-slate-900 dark:text-[#e8e2d9] font-bold text-lg">
+              <span id="summary-total-label">Total to Pay:</span>
+              <strong id="summary-total" class="text-[#8a6828] dark:text-[#c8a96e] font-extrabold text-2xl">₹0</strong>
             </div>
           </div>
 
@@ -217,9 +263,9 @@
           <button
             id="checkout-action-btn"
             onclick="CheckoutModule.placeOrder(event)"
-            class="btn-primary w-full py-4 text-sm justify-center font-bold shadow-md"
+            class="btn-primary w-full py-4 text-sm justify-center font-bold shadow-md cursor-pointer"
           >
-            Confirm & Place Order (₹) →
+            PROCEED TO RAZORPAY (₹0) →
           </button>
 
           <p class="text-xs text-center text-slate-400">
@@ -236,7 +282,7 @@
   <!-- CLEAN FOOTER -->
   <footer class="bg-white border-t border-slate-200 mt-16 py-10 text-sm text-slate-500">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
+      <div id="header-right-actions" class="flex items-center gap-3 shrink-0">
         <span class="font-bold text-slate-900 text-base">OmniCart Marketplace</span>
         <span>•</span>
         <span>Fast & Reliable Online Shopping</span>
@@ -251,6 +297,193 @@
     </div>
   </footer>
 
+  <!-- PAYMENT GATEWAY MODAL -->
+  <div id="payment-gateway-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+    <div class="relative w-full max-w-lg bg-white dark:bg-[#161412] text-slate-900 dark:text-[#e8e2d9] rounded-2xl border border-slate-200 dark:border-[#2a2520] shadow-2xl overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-100 dark:border-[#221e1a] flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/20">
+            🔒
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-[#e8e2d9]">Secure Payment Gateway</h3>
+            <p class="text-[11px] text-slate-500 dark:text-[#9a9188]">256-bit SSL Encrypted • NPCI Verified</p>
+          </div>
+        </div>
+        <button type="button" onclick="CheckoutModule.closePaymentModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#25201b] flex items-center justify-center transition-colors text-lg font-bold">✕</button>
+      </div>
+
+      <!-- Payment Amount & Recipient Banner -->
+      <div class="px-5 py-3.5 bg-slate-50 dark:bg-[#0e0c0a] border-b border-slate-100 dark:border-[#221e1a] flex items-center justify-between">
+        <div>
+          <span class="text-[11px] text-slate-500 dark:text-[#9a9188] block">Recipient / Client:</span>
+          <strong id="payment-modal-recipient" class="text-xs font-semibold text-slate-800 dark:text-[#e8e2d9]">Customer</strong>
+        </div>
+        <div class="text-right">
+          <span class="text-[11px] text-slate-500 dark:text-[#9a9188] block">Total Payable:</span>
+          <strong id="payment-modal-amount" class="text-lg font-bold text-blue-600 dark:text-[#c8a96e]">₹0</strong>
+        </div>
+      </div>
+
+      <!-- Gateway Method Tabs -->
+      <div class="grid grid-cols-3 gap-1 p-2 m-4 rounded-xl bg-slate-100 dark:bg-[#0e0c0a] text-xs">
+        <button id="pm-tab-upi" type="button" onclick="CheckoutModule.switchGatewayTab('upi')" class="py-2.5 px-3 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 font-bold bg-white text-slate-900 border border-slate-200 shadow-sm">
+          <span>⚡</span> UPI
+        </button>
+        <button id="pm-tab-card" type="button" onclick="CheckoutModule.switchGatewayTab('card')" class="py-2.5 px-3 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50">
+          <span>💳</span> Cards
+        </button>
+        <button id="pm-tab-netbanking" type="button" onclick="CheckoutModule.switchGatewayTab('netbanking')" class="py-2.5 px-3 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 border border-transparent hover:bg-white/50">
+          <span>🏦</span> Net Banking
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="p-5 pt-0 space-y-4">
+
+        <!-- PANE 1: UPI -->
+        <div id="gateway-pane-upi" class="space-y-4">
+          <div class="p-3.5 rounded-xl border border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-950/20 text-xs text-slate-600 dark:text-blue-300 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Google Pay, PhonePe, Paytm, BHIM UPI
+            </span>
+            <button type="button" onclick="CheckoutModule.autofillTestUpi('buyer@okhdfcbank')" class="text-[11px] font-semibold text-blue-600 dark:text-[#c8a96e] hover:underline cursor-pointer">
+              Auto-fill Test ID
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-[#9a9188] mb-1.5">Enter Virtual Payment Address (VPA / UPI ID)</label>
+            <input id="gateway-upi-id" type="text" placeholder="e.g. aditya@okhdfcbank" value="buyer@okhdfcbank" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] text-slate-900 dark:text-[#e8e2d9] focus:outline-none focus:border-blue-500 dark:focus:border-[#c8a96e]" />
+          </div>
+
+          <!-- Quick Handle Chips -->
+          <div class="flex items-center gap-1.5 flex-wrap text-[11px]">
+            <span class="text-slate-400 dark:text-[#78716c]">Quick:</span>
+            <button type="button" onclick="CheckoutModule.appendUpiHandle('@okhdfcbank')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#221e1a] hover:bg-slate-200 dark:hover:bg-[#2d2822] text-slate-600 dark:text-[#c8a96e] border border-slate-200 dark:border-[#2a2520] cursor-pointer">@okhdfcbank</button>
+            <button type="button" onclick="CheckoutModule.appendUpiHandle('@okaxis')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#221e1a] hover:bg-slate-200 dark:hover:bg-[#2d2822] text-slate-600 dark:text-[#c8a96e] border border-slate-200 dark:border-[#2a2520] cursor-pointer">@okaxis</button>
+            <button type="button" onclick="CheckoutModule.appendUpiHandle('@ybl')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#221e1a] hover:bg-slate-200 dark:hover:bg-[#2d2822] text-slate-600 dark:text-[#c8a96e] border border-slate-200 dark:border-[#2a2520] cursor-pointer">@ybl</button>
+            <button type="button" onclick="CheckoutModule.appendUpiHandle('@paytm')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#221e1a] hover:bg-slate-200 dark:hover:bg-[#2d2822] text-slate-600 dark:text-[#c8a96e] border border-slate-200 dark:border-[#2a2520] cursor-pointer">@paytm</button>
+          </div>
+
+          <button type="button" onclick="CheckoutModule.executeGatewayPayment('UPI Instant Transfer')" class="btn-primary w-full py-3.5 text-sm font-bold justify-center shadow-lg">
+            Verify & Pay via UPI →
+          </button>
+        </div>
+
+        <!-- PANE 2: Cards -->
+        <div id="gateway-pane-card" class="space-y-4 hidden">
+          <!-- Card Visual Preview -->
+          <div class="p-4 rounded-xl bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 text-white shadow-md relative overflow-hidden border border-slate-700">
+            <div class="flex items-center justify-between text-xs text-slate-300 mb-4">
+              <span class="font-bold tracking-wider">OMNICART SECURE</span>
+              <span class="font-mono text-[10px] bg-white/10 px-2 py-0.5 rounded">3D SECURE 2.0</span>
+            </div>
+            <div id="card-preview-number" class="font-mono text-base tracking-widest my-2">4532 •••• •••• 4999</div>
+            <div class="flex items-center justify-between text-xs pt-2 text-slate-300">
+              <div>
+                <span class="text-[9px] uppercase tracking-wider block text-slate-400">Cardholder</span>
+                <span id="card-preview-name" class="font-semibold uppercase tracking-wider">ADITYA</span>
+              </div>
+              <div>
+                <span class="text-[9px] uppercase tracking-wider block text-slate-400">Expires</span>
+                <span id="card-preview-expiry" class="font-mono">12/28</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="button" onclick="CheckoutModule.autofillTestCard()" class="text-[11px] font-semibold text-blue-600 dark:text-[#c8a96e] hover:underline cursor-pointer">
+              Auto-fill Test Card
+            </button>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-[#9a9188] mb-1">Card Number *</label>
+              <input id="gateway-card-number" type="text" maxlength="19" oninput="CheckoutModule.formatCardNumber(this)" placeholder="4532 8819 9204 4999" value="4532 8819 9204 4999" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] text-slate-900 dark:text-[#e8e2d9] font-mono" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-[#9a9188] mb-1">Cardholder Name *</label>
+              <input id="gateway-card-name" type="text" placeholder="Name printed on card" value="Ritik Yadav" oninput="const p = document.getElementById('card-preview-name'); if(p) p.innerText = this.value.toUpperCase() || 'CARDHOLDER';" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] text-slate-900 dark:text-[#e8e2d9]" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-[#9a9188] mb-1">Expiry Date *</label>
+                <input id="gateway-card-expiry" type="text" maxlength="5" oninput="CheckoutModule.formatCardExpiry(this)" placeholder="MM/YY" value="12/28" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] text-slate-900 dark:text-[#e8e2d9] font-mono" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-[#9a9188] mb-1">CVV / CVC *</label>
+                <input id="gateway-card-cvv" type="password" maxlength="4" placeholder="829" value="829" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] text-slate-900 dark:text-[#e8e2d9] font-mono" />
+              </div>
+            </div>
+          </div>
+
+          <button type="button" onclick="CheckoutModule.executeGatewayPayment('Credit / Debit Card')" class="btn-primary w-full py-3.5 text-sm font-bold justify-center shadow-lg">
+            Authorize & Pay →
+          </button>
+        </div>
+
+        <!-- PANE 3: Net Banking -->
+        <div id="gateway-pane-netbanking" class="space-y-4 hidden">
+          <p class="text-xs text-slate-500 dark:text-[#9a9188]">Select your preferred bank from the list below:</p>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <label class="p-3 rounded-lg border border-slate-200 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] flex items-center gap-2 cursor-pointer hover:border-blue-400 transition-colors">
+              <input type="radio" name="nb-bank" value="HDFC Bank" checked class="text-blue-600" />
+              <span class="font-medium">HDFC Bank</span>
+            </label>
+            <label class="p-3 rounded-lg border border-slate-200 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] flex items-center gap-2 cursor-pointer hover:border-blue-400 transition-colors">
+              <input type="radio" name="nb-bank" value="ICICI Bank" class="text-blue-600" />
+              <span class="font-medium">ICICI Bank</span>
+            </label>
+            <label class="p-3 rounded-lg border border-slate-200 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] flex items-center gap-2 cursor-pointer hover:border-blue-400 transition-colors">
+              <input type="radio" name="nb-bank" value="State Bank of India" class="text-blue-600" />
+              <span class="font-medium">SBI</span>
+            </label>
+            <label class="p-3 rounded-lg border border-slate-200 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] flex items-center gap-2 cursor-pointer hover:border-blue-400 transition-colors">
+              <input type="radio" name="nb-bank" value="Axis Bank" class="text-blue-600" />
+              <span class="font-medium">Axis Bank</span>
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-[#9a9188] mb-1">Or choose another bank</label>
+            <select id="gateway-nb-select" class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-[#2a2520] bg-white dark:bg-[#1a1714] text-slate-900 dark:text-[#e8e2d9]">
+              <option value="">-- Select from 50+ Banks --</option>
+              <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+              <option value="Bank of Baroda">Bank of Baroda</option>
+              <option value="Punjab National Bank">Punjab National Bank</option>
+              <option value="Canara Bank">Canara Bank</option>
+              <option value="Union Bank of India">Union Bank of India</option>
+              <option value="IndusInd Bank">IndusInd Bank</option>
+              <option value="Yes Bank">Yes Bank</option>
+              <option value="IDFC First Bank">IDFC First Bank</option>
+            </select>
+          </div>
+
+          <button type="button" onclick="CheckoutModule.executeGatewayPayment('Net Banking')" class="btn-primary w-full py-3.5 text-sm font-bold justify-center shadow-lg">
+            Proceed to Bank Portal →
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Processing Overlay -->
+      <div id="gateway-processing-overlay" class="hidden absolute inset-0 bg-white/95 dark:bg-[#161412]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20">
+        <div class="w-12 h-12 border-4 border-blue-600/20 dark:border-[#c8a96e]/20 border-t-blue-600 dark:border-t-[#c8a96e] rounded-full animate-spin mb-4"></div>
+        <h4 id="gateway-processing-title" class="text-base font-bold text-slate-900 dark:text-[#e8e2d9]">Securing Bank Connection...</h4>
+        <p id="gateway-processing-subtitle" class="text-xs text-slate-500 dark:text-[#9a9188] mt-1.5 max-w-xs">Authenticating payment session with 256-bit encryption protocol.</p>
+      </div>
+
+    </div>
+  </div>
+
   <!-- CLEAN LOGIN / REGISTER MODAL -->
   <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
     <div class="relative w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-2xl">
@@ -264,12 +497,20 @@
     </div>
   </div>
 
+  <!-- RAZORPAY CHECKOUT SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    if (typeof window.Razorpay === 'undefined') {
+      document.write('<script src="js/razorpay-checkout.js"><\/script>');
+    }
+  </script>
+
   <!-- JAVASCRIPT MODULES -->
-  <script src="js/data-store.js?v=2.2"></script>
-  <script src="js/ui-module.js?v=2.2"></script>
-  <script src="js/auth-module.js?v=2.2"></script>
-  <script src="js/checkout-module.js?v=2.2"></script>
-  <script src="js/app.js?v=2.2"></script>
+  <script src="js/data-store.js?v=31.0"></script>
+  <script src="js/ui-module.js?v=31.0"></script>
+  <script src="js/auth-module.js?v=31.0"></script>
+  <script src="js/checkout-module.js?v=31.0"></script>
+  <script src="js/app.js?v=31.0"></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       CheckoutModule.init();

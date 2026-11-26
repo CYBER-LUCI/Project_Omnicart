@@ -67,7 +67,6 @@ public class AuthController {
             return new ResponseEntity<>(ApiResponse.error("Password is required."), HttpStatus.UNAUTHORIZED);
         }
 
-        // 1. Admin account check
         if ("admin@omnicart.com".equalsIgnoreCase(email)) {
             if (!"admin123".equals(rawPassword) && !"OmniCart@2026".equals(rawPassword)) {
                 return new ResponseEntity<>(ApiResponse.error("Invalid admin credentials."), HttpStatus.UNAUTHORIZED);
@@ -76,13 +75,27 @@ public class AuthController {
             return ResponseEntity.ok(ApiResponse.success("Admin login successful", new AuthResponse(token, email, Role.ADMIN.name(), 0L)));
         }
 
-        // 2. Customer database account lookup
         var customerOpt = customerRepository.findByEmail(email);
+        if (customerOpt.isEmpty()) {
+            customerOpt = customerRepository.findByPhone(email);
+        }
+        if (customerOpt.isEmpty()) {
+            String digits = email.replaceAll("\\D", "");
+            if (digits.length() >= 7) {
+                customerOpt = customerRepository.findByPhoneContaining(digits);
+            }
+        }
         if (customerOpt.isPresent()) {
             var customer = customerOpt.get();
-            boolean valid = customer.getPasswordHash() != null
-                    ? passwordEncoder.matches(rawPassword, customer.getPasswordHash())
-                    : ("password".equals(rawPassword) || rawPassword.length() >= 6);
+            boolean valid = false;
+            String hash = customer.getPasswordHash();
+            if (hash != null && !hash.isBlank()) {
+                if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
+                    valid = passwordEncoder.matches(rawPassword, hash);
+                } else {
+                    valid = hash.equals(rawPassword);
+                }
+            }
             if (!valid) {
                 return new ResponseEntity<>(ApiResponse.error("Invalid email or password."), HttpStatus.UNAUTHORIZED);
             }
@@ -90,21 +103,34 @@ public class AuthController {
             return ResponseEntity.ok(ApiResponse.success("Login successful", new AuthResponse(token, email, Role.CUSTOMER.name(), customer.getId())));
         }
 
-        // 3. Seller database account lookup
         var sellerOpt = sellerRepository.findByContactEmailIgnoreCase(email);
+        if (sellerOpt.isEmpty()) {
+            sellerOpt = sellerRepository.findByContactPhone(email);
+        }
+        if (sellerOpt.isEmpty()) {
+            String digits = email.replaceAll("\\D", "");
+            if (digits.length() >= 7) {
+                sellerOpt = sellerRepository.findByContactPhoneContaining(digits);
+            }
+        }
         if (sellerOpt.isPresent()) {
             var seller = sellerOpt.get();
-            boolean valid = seller.getPasswordHash() != null
-                    ? passwordEncoder.matches(rawPassword, seller.getPasswordHash())
-                    : ("password".equals(rawPassword) || rawPassword.length() >= 6);
-            if (!valid) {
-                return new ResponseEntity<>(ApiResponse.error("Invalid merchant email or password."), HttpStatus.UNAUTHORIZED);
+            boolean valid = false;
+            String hash = seller.getPasswordHash();
+            if (hash != null && !hash.isBlank()) {
+                if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
+                    valid = passwordEncoder.matches(rawPassword, hash);
+                } else {
+                    valid = hash.equals(rawPassword);
+                }
             }
-            String token = jwtTokenProvider.generateToken(seller.getId(), email, Role.SELLER);
-            return ResponseEntity.ok(ApiResponse.success("Merchant login successful", new AuthResponse(token, email, Role.SELLER.name(), seller.getId())));
+            if (!valid) {
+                return new ResponseEntity<>(ApiResponse.error("Invalid merchant email, phone, or password."), HttpStatus.UNAUTHORIZED);
+            }
+            String token = jwtTokenProvider.generateToken(seller.getId(), seller.getContactEmail(), Role.SELLER);
+            return ResponseEntity.ok(ApiResponse.success("Merchant login successful", new AuthResponse(token, seller.getContactEmail(), Role.SELLER.name(), seller.getId())));
         }
 
-        // 4. If account is not in database, reject with 401 Unauthorized
         return new ResponseEntity<>(
                 ApiResponse.error("Invalid credentials: No account found for '" + email + "'. Please check your credentials or register a new account."),
                 HttpStatus.UNAUTHORIZED

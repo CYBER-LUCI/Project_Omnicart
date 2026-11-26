@@ -18,6 +18,10 @@ public class ProductResponse {
     private List<ProductImageResponse> images;
     private boolean hasEmbedding;
     private LocalDateTime createdAt;
+    private BigDecimal minFloorPrice;
+    private BigDecimal maxCeilingPrice;
+    private Double rating;
+    private Integer reviewsCount;
 
     public ProductResponse() {}
 
@@ -36,6 +40,7 @@ public class ProductResponse {
     public String getStockStatus() { return stockStatus; }
     public void setStockStatus(String stockStatus) { this.stockStatus = stockStatus; }
 
+    public BigDecimal currentPrice() { return currentPrice; }
     public BigDecimal getCurrentPrice() { return currentPrice; }
     public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
 
@@ -59,4 +64,16 @@ public class ProductResponse {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public BigDecimal getMinFloorPrice() { return minFloorPrice; }
+    public void setMinFloorPrice(BigDecimal minFloorPrice) { this.minFloorPrice = minFloorPrice; }
+
+    public BigDecimal getMaxCeilingPrice() { return maxCeilingPrice; }
+    public void setMaxCeilingPrice(BigDecimal maxCeilingPrice) { this.maxCeilingPrice = maxCeilingPrice; }
+
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { this.rating = rating; }
+
+    public Integer getReviewsCount() { return reviewsCount; }
+    public void setReviewsCount(Integer reviewsCount) { this.reviewsCount = reviewsCount; }
 }

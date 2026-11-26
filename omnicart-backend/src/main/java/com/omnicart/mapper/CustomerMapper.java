@@ -16,10 +16,16 @@ public class CustomerMapper {
         res.setLastName(customer.getLastName());
         res.setCreatedAt(customer.getCreatedAt());
         if (customer.getEmails() != null) {
-            res.setEmails(customer.getEmails().stream().map(CustomerEmail::getEmailAddress).collect(Collectors.toList()));
+            res.setEmails(customer.getEmails().stream()
+                    .sorted((a, b) -> Boolean.compare(Boolean.TRUE.equals(b.getIsPrimary()), Boolean.TRUE.equals(a.getIsPrimary())))
+                    .map(CustomerEmail::getEmailAddress)
+                    .collect(Collectors.toList()));
         }
         if (customer.getPhones() != null) {
-            res.setPhones(customer.getPhones().stream().map(CustomerPhone::getPhoneNumber).collect(Collectors.toList()));
+            res.setPhones(customer.getPhones().stream()
+                    .sorted((a, b) -> Boolean.compare(Boolean.TRUE.equals(b.getIsPrimary()), Boolean.TRUE.equals(a.getIsPrimary())))
+                    .map(CustomerPhone::getPhoneNumber)
+                    .collect(Collectors.toList()));
         }
         return res;
     }

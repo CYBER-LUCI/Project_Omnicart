@@ -10,6 +10,10 @@ public class PriceLedgerResponse {
     private BigDecimal price;
     private BigDecimal priceFluctuation;
     private LocalDateTime recordedAt;
+    private BigDecimal demandFactor;
+    private BigDecimal scarcityFactor;
+    private BigDecimal competitionFactor;
+    private String changeReason;
 
     public PriceLedgerResponse() {}
 
@@ -30,4 +34,16 @@ public class PriceLedgerResponse {
 
     public LocalDateTime getRecordedAt() { return recordedAt; }
     public void setRecordedAt(LocalDateTime recordedAt) { this.recordedAt = recordedAt; }
+
+    public BigDecimal getDemandFactor() { return demandFactor; }
+    public void setDemandFactor(BigDecimal demandFactor) { this.demandFactor = demandFactor; }
+
+    public BigDecimal getScarcityFactor() { return scarcityFactor; }
+    public void setScarcityFactor(BigDecimal scarcityFactor) { this.scarcityFactor = scarcityFactor; }
+
+    public BigDecimal getCompetitionFactor() { return competitionFactor; }
+    public void setCompetitionFactor(BigDecimal competitionFactor) { this.competitionFactor = competitionFactor; }
+
+    public String getChangeReason() { return changeReason; }
+    public void setChangeReason(String changeReason) { this.changeReason = changeReason; }
 }

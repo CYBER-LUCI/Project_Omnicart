@@ -32,15 +32,18 @@ public class SellerServiceImpl implements SellerService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final PriceService priceService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public SellerServiceImpl(SellerRepository sellerRepository,
                              ProductRepository productRepository,
                              OrderRepository orderRepository,
-                             PriceService priceService) {
+                             PriceService priceService,
+                             org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.sellerRepository = sellerRepository;
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.priceService = priceService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -55,6 +58,15 @@ public class SellerServiceImpl implements SellerService {
         seller.setGstin(request.getGstin());
         seller.setContactEmail(request.getContactEmail());
         seller.setContactPhone(request.getContactPhone());
+        seller.setCity(request.getCity());
+        seller.setState(request.getState());
+
+        String rawPw = request.getPassword();
+        if (rawPw != null && !rawPw.isBlank()) {
+            seller.setPasswordHash(passwordEncoder.encode(rawPw));
+        } else {
+            seller.setPasswordHash(passwordEncoder.encode("password123"));
+        }
 
         Seller saved = sellerRepository.save(seller);
         return SellerMapper.toResponse(saved);
@@ -77,8 +89,12 @@ public class SellerServiceImpl implements SellerService {
         seller.setCompanyName(request.getCompanyName());
         seller.setContactEmail(request.getContactEmail());
         seller.setContactPhone(request.getContactPhone());
+        if (request.getCity() != null) seller.setCity(request.getCity());
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            seller.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+        }
 
-        Seller updated = sellerRepository.save(seller);
+        Seller updated = sellerRepository.saveAndFlush(seller);
         return SellerMapper.toResponse(updated);
     }
 
@@ -131,5 +147,13 @@ public class SellerServiceImpl implements SellerService {
                 .collect(Collectors.toList()));
 
         return dashboard;
+    }
+
+    @Override
+    @Transactional
+    public void deleteSeller(Long id) {
+        Seller seller = sellerRepository.findById(id)
+                .orElseThrow(() -> new SellerNotFoundException(id));
+        sellerRepository.delete(seller);
     }
 }

@@ -10,8 +10,17 @@ public class OrderDetailResponse {
     private Long ledgerId;
     private BigDecimal lineTotal;
     private String imageUrl;
+    private Long sellerId;
+    private String sellerName;
+    private String status = "ACTIVE";
 
     public OrderDetailResponse() {}
+
+    public Long getSellerId() { return sellerId; }
+    public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
+
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
 
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }
@@ -33,4 +42,7 @@ public class OrderDetailResponse {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

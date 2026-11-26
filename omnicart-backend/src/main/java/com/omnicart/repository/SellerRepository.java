@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface SellerRepository extends JpaRepository<Seller, Long> {
     Optional<Seller> findByGstin(String gstin);
     Optional<Seller> findByContactEmailIgnoreCase(String contactEmail);
+    Optional<Seller> findByContactPhone(String contactPhone);
+    Optional<Seller> findByContactPhoneContaining(String contactPhone);
     boolean existsByGstin(String gstin);
     boolean existsByContactEmailIgnoreCase(String contactEmail);
 }

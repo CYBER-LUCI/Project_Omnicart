@@ -15,6 +15,10 @@ public class OrderCreateRequest {
     @NotEmpty(message = "Order must contain at least one item")
     @Valid
     private List<OrderItemRequest> items;
+    private String recipientName;
+    private String deliveryAddress;
+
+
 
     public OrderCreateRequest() {}
 
@@ -23,6 +27,12 @@ public class OrderCreateRequest {
 
     public Integer getPaymentMethodId() { return paymentMethodId; }
     public void setPaymentMethodId(Integer paymentMethodId) { this.paymentMethodId = paymentMethodId; }
+
+    public String getRecipientName() { return recipientName; }
+    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
 
     public List<OrderItemRequest> getItems() { return items; }
     public void setItems(List<OrderItemRequest> items) { this.items = items; }

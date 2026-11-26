@@ -34,6 +34,9 @@ public class OrderDetails implements Persistable<OrderDetailsId> {
     @JoinColumn(name = "LedgerID", nullable = false, updatable = false)
     private PriceLedger ledger;
 
+    @Column(name = "Status", nullable = false, length = 20)
+    private String status = "ACTIVE";
+
     public OrderDetails() {}
 
     public OrderDetails(Order order, Product product, Integer quantity, BigDecimal exactLedgerPrice, PriceLedger ledger) {
@@ -72,6 +75,9 @@ public class OrderDetails implements Persistable<OrderDetailsId> {
 
     public PriceLedger getLedger() { return ledger; }
     public void setLedger(PriceLedger ledger) { this.ledger = ledger; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     public BigDecimal getLineTotal() {
         if (exactLedgerPrice == null || quantity == null) return BigDecimal.ZERO;

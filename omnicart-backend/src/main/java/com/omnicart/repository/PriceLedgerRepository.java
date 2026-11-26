@@ -25,4 +25,12 @@ public interface PriceLedgerRepository extends JpaRepository<PriceLedger, Long> 
 
     @Query("SELECT pl FROM PriceLedger pl WHERE pl.product.id = :productId AND pl.recordedAt <= :timestamp ORDER BY pl.recordedAt DESC, pl.id DESC LIMIT 1")
     Optional<PriceLedger> findPriceAtTimestamp(@Param("productId") Long productId, @Param("timestamp") LocalDateTime timestamp);
+
+    @Query("SELECT pl FROM PriceLedger pl WHERE pl.product.id = :productId ORDER BY pl.recordedAt ASC, pl.id ASC LIMIT 1")
+    Optional<PriceLedger> findBaselineByProductId(@Param("productId") Long productId);
+
+    @Query("SELECT pl FROM PriceLedger pl WHERE pl.product.id = :productId AND pl.source.id = 1 ORDER BY pl.recordedAt DESC, pl.id DESC LIMIT 1")
+    Optional<PriceLedger> findLatestSellerPrice(@Param("productId") Long productId);
+
+    long countByProductId(Long productId);
 }

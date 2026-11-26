@@ -1,323 +1,498 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniCart — Product Details & Price History</title>
+  <title>OmniCart - Product Details</title>
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.min.js?v=31.0"></script>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
-  <!-- Custom Clean Styles -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="shortcut icon" href="images/favicon.ico">
+
+  <link rel="stylesheet" href="css/styles.css?v=31.0">
 
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            serif: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
           }
         }
       }
     }
   </script>
+
+  <script>
+      (function () {
+        var theme = localStorage.getItem('omnicart_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'light') {
+          document.documentElement.classList.remove('dark', 'dark-theme');
+          document.documentElement.classList.add('light-theme');
+        } else {
+          document.documentElement.classList.remove('light-theme');
+          document.documentElement.classList.add('dark', 'dark-theme');
+        }
+      })();
+  </script>
+  <style>
+    /* Suppress browser native password reveal icon in Edge/IE to prevent duplicate eye icons */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear,
+    input::-ms-reveal,
+    input::-ms-clear {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans text-base">
 
-  <!-- Toast Container -->
-  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 pointer-events-none max-w-sm w-full"></div>
+<body class="min-h-screen flex flex-col font-sans text-base">
 
-  <!-- MAIN NAVIGATION HEADER -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
-      
-      <!-- Brand Logo -->
-      <a href="index.html" class="flex items-center gap-3 shrink-0">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-sm">
-          🛒
-        </div>
-        <div>
-          <span class="text-2xl font-bold tracking-tight text-slate-900 block leading-tight">OmniCart</span>
-          <span class="text-xs text-slate-500 font-medium block">Product View</span>
-        </div>
+  <div id="toast-container"
+    class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-auto max-w-md">
+  </div>
+
+  <header class="bg-[#0a0908]/90 backdrop-blur-md border-b border-[#2a2520] sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+
+      <a href="index.html" class="nav-logo">
+        Omni<span>cart</span>
       </a>
 
-      <!-- Right Header Actions (Initial Login Option vs Logged In) -->
+      <div class="flex-1 max-w-xl relative hidden sm:block">
+        <div class="relative flex items-center gap-2">
+          <div class="relative flex-1 flex items-center">
+            <svg class="w-4 h-4 text-[#9a9188] absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor"
+              stroke-width="1.5" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Search products by title, category, keywords..."
+              class="global-search-input clean-input pl-10 pr-20 py-2 text-xs w-full" />
+            <button type="button"
+              onclick="const val = this.parentElement.querySelector('input').value.trim(); if(val) window.location.href='products.html?search='+encodeURIComponent(val);"
+              class="absolute right-1 px-3 py-1 text-xs rounded bg-[#c8a96e] hover:bg-[#b89355] text-black font-bold transition-colors cursor-pointer shadow-xs">
+              Search
+            </button>
+          </div>
+          <button onclick="VisualSearchModule.openModal('upload')"
+            class="px-2.5 py-1.5 text-xs rounded bg-[#1a1714] hover:bg-[#25211d] text-[#c8a96e] border border-[#2a2520] font-medium transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+            title="Search by image or photo">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="m21 15-5-5L5 21"></path>
+            </svg>
+            <span>Visual AI</span>
+          </button>
+        </div>
+      </div>
+
       <div class="flex items-center gap-3 shrink-0">
-        
-        <!-- Saved Products Link (Guarded) -->
-        <a
-          href="saved-products.html"
-          onclick="return AuthModule.guardUserClick('saved-products.html', event)"
-          class="flex items-center gap-1.5 p-2 rounded-lg text-slate-700 hover:bg-slate-100 text-xs font-semibold"
-        >
-          <span>❤️</span>
+
+        <button type="button" id="theme-toggle-btn" onclick="UIModule.toggleTheme()" class="theme-toggle-btn"
+          title="Switch between Light and Dark mode">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"></circle>
+            <path
+              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42">
+            </path>
+          </svg>
+          <span class="hidden sm:inline font-semibold">Light</span>
+        </button>
+
+        <a href="saved-products.html" onclick="return AuthModule.guardUserClick('saved-products.html', event)"
+          class="flex items-center gap-1.5 p-2 rounded text-[#e8e2d9] hover:text-[#c8a96e] hover:bg-[#161412] text-xs font-semibold transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+            </path>
+          </svg>
           <span class="hidden sm:inline">Saved</span>
-          <span id="header-saved-badge" class="badge badge-blue text-[11px] saved-count-badge">0</span>
+          <span id="header-saved-badge" class="badge badge-gold text-[10px] saved-count-badge">0</span>
         </a>
 
-        <!-- Cart Button (Guarded) -->
-        <a
-          href="cart.html"
-          onclick="return AuthModule.guardUserClick('cart.html', event)"
-          class="btn-secondary py-2 px-3 text-xs font-semibold flex items-center gap-2"
-        >
-          <span>🛒</span>
+        <a href="cart.html" onclick="return AuthModule.guardUserClick('cart.html', event)"
+          class="btn-secondary py-1.5 px-3 text-xs font-semibold flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
           <span class="hidden sm:inline">Cart</span>
-          <span id="header-cart-badge" class="badge badge-blue text-[11px]">0</span>
+          <span id="header-cart-badge" class="badge badge-gold text-[10px]">0</span>
         </a>
 
-        <!-- INITIAL LOGIN BUTTON (When Guest) -->
         <div id="header-guest-auth" class="flex items-center gap-2">
-          <a
-            href="login.html"
-            class="btn-primary py-2.5 px-6 text-sm sm:text-base font-bold shadow-sm hover:shadow transition-all"
-          >
+          <a href="login.html" class="btn-primary py-2 px-5 text-xs font-bold tracking-widest uppercase">
             Sign In
           </a>
         </div>
 
         <div id="header-user-auth" class="relative hidden">
-          <button onclick="AuthModule.toggleAuthDropdown()" class="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-semibold text-slate-800 transition-colors">
-            <div class="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
+          <button onclick="AuthModule.toggleAuthDropdown()"
+            class="flex items-center gap-2 px-3.5 py-1.5 rounded border border-[#2a2520] hover:border-[#c8a96e] bg-[#131110] text-xs font-semibold text-[#e8e2d9] transition-colors cursor-pointer">
+            <div class="w-2 h-2 rounded-full bg-[#c8a96e]"></div>
             <span id="header-user-name">My Account</span>
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            <svg class="w-3.5 h-3.5 text-[#9a9188]" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
-          <div id="auth-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 shadow-xl p-2 z-50 text-sm">
+          <div id="auth-dropdown-menu"
+            class="hidden absolute right-0 mt-2 w-64 rounded bg-[#131110] border border-[#2a2520] shadow-2xl p-1 z-50 text-xs">
             <div id="auth-dropdown-items"></div>
           </div>
         </div>
 
-        <a href="products.html" class="btn-secondary py-2 px-3 text-xs font-semibold">
+        <a href="products.html" class="btn-secondary py-1.5 px-3.5 text-xs font-semibold">
           ← Catalog
-        </a>
-      </div>
-    </div>
-
-    <!-- Secondary Nav Bar with Larger Fonts -->
-    <div class="border-t border-slate-100 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-sm py-2 overflow-x-auto no-scrollbar">
-        <div class="flex items-center gap-1.5">
-          <a href="index.html" class="nav-tab">Home</a>
-          <a href="products.html" class="nav-tab active">All Products</a>
-          <a href="saved-products.html" onclick="return AuthModule.guardUserClick('saved-products.html', event)" class="nav-tab">Saved Products (Wishlist)</a>
-          <a href="cart.html" onclick="return AuthModule.guardUserClick('cart.html', event)" class="nav-tab">My Cart</a>
-          <a href="orders.html" onclick="return AuthModule.guardUserClick('orders.html', event)" class="nav-tab">Track Orders</a>
-          <a href="customer-profile.html" onclick="return AuthModule.guardUserClick('customer-profile.html', event)" class="nav-tab">My Profile</a>
-        </div>
-        <a href="seller-dashboard.html" onclick="return AuthModule.guardSellerClick('seller-dashboard.html', event)" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3.5 py-1.5 rounded-lg transition-colors shrink-0">
-          Seller Portal ↗
         </a>
       </div>
     </div>
   </header>
 
-  <!-- MAIN PRODUCT DETAIL CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-12">
 
-    <!-- Breadcrumb -->
-    <nav class="text-sm text-slate-500 flex items-center gap-2">
-      <a href="index.html" class="hover:underline">Home</a>
+    <nav class="flex items-center gap-2 text-xs text-[#9a9188]">
+      <a href="index.html" class="hover:text-[#c8a96e]">Home</a>
       <span>/</span>
-      <a href="products.html" class="hover:underline">Products</a>
+      <a href="products.html" class="hover:text-[#c8a96e]">Catalog</a>
       <span>/</span>
-      <a id="bc-category" href="products.html" class="hover:underline text-blue-600 font-medium">Category</a>
-      <span>/</span>
-      <span id="bc-product-name" class="text-slate-800 truncate max-w-xs font-semibold">Product Name</span>
+      <span class="text-[#e8e2d9] font-medium truncate max-w-xs" id="detail-breadcrumb-title">Product View</span>
     </nav>
 
-    <!-- Top Product Card: Gallery + Purchase Actions -->
-    <div class="clean-card p-6 sm:p-10 grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
 
-      <!-- Left Column: Image Gallery (5 cols) -->
-      <div class="md:col-span-5 flex flex-col items-center">
-        <div class="w-full h-80 sm:h-96 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center p-6 relative overflow-hidden">
-          <img
-            id="detail-main-img"
-            src=""
-            alt="Product Image"
-            class="w-full h-full object-contain"
-          />
-          <span id="detail-product-discount" class="badge badge-red absolute top-4 left-4 text-xs font-bold">
-            -50%
+      <div class="lg:col-span-6 space-y-4">
+
+        <div
+          class="clean-card p-6 sm:p-8 flex items-center justify-center bg-[#0a0908] border border-[#2a2520] rounded relative group min-h-[380px] sm:min-h-[440px]">
+          <img id="detail-main-img" src="images/f7369fc9-8a6a-40cb-9090-f8be441e1bfb.jpg"
+            onerror="this.onerror=null; this.src='images/f7369fc9-8a6a-40cb-9090-f8be441e1bfb.jpg';"
+            alt="Product Preview"
+            class="max-h-[380px] w-full object-contain transition-transform duration-400 group-hover:scale-105" />
+          <span class="absolute top-4 left-4 badge badge-gold text-[10px] font-bold">
+            Verified Genuine
           </span>
         </div>
 
-        <!-- Thumbnails -->
-        <div class="flex items-center gap-3 mt-4 overflow-x-auto w-full justify-center" id="detail-thumbs-container"></div>
+        <div class="flex items-center gap-3 overflow-x-auto pb-2" id="detail-thumbs-container">
+
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 pt-2 text-center text-xs text-[#9a9188]">
+          <div class="clean-card p-3">
+            <svg class="w-5 h-5 mx-auto mb-1 text-[#c8a96e]" fill="none" stroke="currentColor" stroke-width="1.5"
+              viewBox="0 0 24 24">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+            </svg>
+            <span class="font-semibold text-[#e8e2d9] block">Fast Delivery</span>
+            <span class="text-[10px]">Local dispatch available</span>
+          </div>
+          <div class="clean-card p-3">
+            <svg class="w-5 h-5 mx-auto mb-1 text-[#c8a96e]" fill="none" stroke="currentColor" stroke-width="1.5"
+              viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span class="font-semibold text-[#e8e2d9] block">Verified Seller</span>
+            <span class="text-[10px]">GSTIN registered</span>
+          </div>
+          <div class="clean-card p-3">
+            <svg class="w-5 h-5 mx-auto mb-1 text-[#c8a96e]" fill="none" stroke="currentColor" stroke-width="1.5"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+              </path>
+            </svg>
+            <span class="font-semibold text-[#e8e2d9] block">Secure Payment</span>
+            <span class="text-[10px]">100% Protected</span>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Right Column: Product Details & Purchase Actions (7 cols) -->
-      <div class="md:col-span-7 flex flex-col space-y-6">
-        
-        <div>
-          <span id="detail-product-cat" class="text-xs font-bold text-blue-600 uppercase tracking-wider block mb-1">
-            Category
-          </span>
-          <h1 id="detail-product-title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
-            Product Title
+      <div class="lg:col-span-6 space-y-6">
+
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs text-[#c8a96e] tracking-widest uppercase font-semibold"
+              id="detail-category-badge">Category</span>
+            <span class="text-[#9a9188]">•</span>
+            <span class="badge badge-gold text-[10px] font-medium" id="detail-stock-status-pill">In Stock</span>
+            <button type="button" class="copy-btn text-[10px] py-0.5 px-2 ml-auto"
+              onclick="UIModule.copyToClipboard(window.location.href, this, 'Link Copied!')" title="Share Product Link">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span>Share</span>
+            </button>
+          </div>
+
+          <h1 class="text-3xl sm:text-4xl font-display text-[#e8e2d9] leading-tight" id="detail-title">
+            Loading Product...
           </h1>
-          <div class="flex items-center gap-3 text-sm">
-            <span id="detail-product-rating" class="text-amber-500 font-semibold">★ 4.9 (2,410 reviews)</span>
-            <span class="text-slate-300">•</span>
-            <span id="detail-stock-badge" class="badge badge-green">In Stock</span>
+
+          <div class="flex items-center gap-4 text-xs">
+            <div id="detail-rating-stars" class="flex items-center gap-1">
+              <span class="inline-flex text-[#443e37]" id="detail-star-icons">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                  </path>
+                </svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                  </path>
+                </svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                  </path>
+                </svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                  </path>
+                </svg>
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                  </path>
+                </svg>
+              </span>
+              <span class="font-bold text-[#e8e2d9] ml-1" id="detail-rating-score">--</span>
+            </div>
+            <span class="text-[#9a9188]">|</span>
+            <a href="#product-reviews-section" class="text-[#c8a96e] hover:underline" id="detail-review-count">Loading
+              Verified Reviews...</a>
           </div>
         </div>
 
-        <!-- Pricing Card in Rupees (₹) -->
-        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 flex items-baseline justify-between">
-          <div>
-            <span class="text-xs text-slate-500 font-medium block">Price:</span>
-            <div class="flex items-baseline gap-3">
-              <span id="detail-product-price" class="text-3xl sm:text-4xl font-extrabold text-slate-900">₹0</span>
-              <span id="detail-product-orig-price" class="text-base text-slate-400 line-through">₹0</span>
+        <div class="clean-card p-5 space-y-3 bg-[#131110] border border-[#2a2520]">
+          <div class="flex items-baseline gap-4 flex-wrap">
+            <span class="text-3xl sm:text-4xl font-extrabold text-[#e8e2d9]" id="detail-price">--</span>
+            <span class="text-lg text-[#9a9188] line-through" id="detail-orig-price"></span>
+            <span class="badge badge-gold font-bold text-xs" id="detail-discount"></span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap pt-2 border-t border-[#221e1a]">
+            <button type="button" onclick="ProductDetailModule.openDynamicPricingDetails()"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#c8a96e]/15 text-[#c8a96e] border border-[#c8a96e]/30 hover:bg-[#c8a96e]/25 transition-colors cursor-pointer"
+              title="Click to view 4-Factor Dynamic Pricing breakdown">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#c8a96e] animate-pulse"></span>
+              <span>⚡ 4-Factor Dynamic Price Active</span>
+            </button>
+            <button type="button" onclick="ProductDetailModule.openDynamicPricingDetails()"
+              class="text-[11px] text-[#9a9188] hover:text-[#c8a96e] underline cursor-pointer">
+              View Algorithm Rationale →
+            </button>
+          </div>
+          <p class="text-xs text-[#9a9188]">Inclusive of all taxes. Free express shipping on this order.</p>
+        </div>
+
+        <!-- Live Algorithmic Pricing Signals Card -->
+        <div class="clean-card p-4 space-y-3 bg-[#110f0d] border border-[#2a2520]">
+          <div class="flex items-center justify-between pb-2 border-b border-[#221e1a]">
+            <div class="flex items-center gap-2">
+              <span class="text-xs uppercase font-mono tracking-wider text-[#c8a96e] font-bold">Market Dynamic
+                Signals</span>
+              <span class="badge badge-gold text-[9px]">Manual Mode</span>
+            </div>
+            <button type="button" id="recalculate-dynamic-btn" onclick="ProductDetailModule.recalculateDynamicPricing()"
+              class="btn-secondary py-1 px-2.5 text-[10px] text-[#c8a96e] border-[#c8a96e]/30 hover:border-[#c8a96e] flex items-center gap-1 cursor-pointer transition-colors"
+              title="Re-evaluate live price based on current stock across all sellers and 24h demand">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Evaluate Dynamic Price</span>
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 rounded bg-[#181512] border border-[#2a2520]">
+              <span class="text-[10px] text-[#9a9188] block">Market Demand (24h)</span>
+              <span class="font-medium text-[#e8e2d9]" id="metric-demand-orders">Calculating...</span>
+            </div>
+            <div class="p-2.5 rounded bg-[#181512] border border-[#2a2520]">
+              <span class="text-[10px] text-[#9a9188] block">Multi-Seller Stock</span>
+              <span class="font-medium text-[#e8e2d9]" id="metric-total-stock">Calculating...</span>
+            </div>
+            <div class="p-2.5 rounded bg-[#181512] border border-[#2a2520]">
+              <span class="text-[10px] text-[#9a9188] block">Temporal Window</span>
+              <span class="font-medium text-[#e8e2d9]" id="metric-temporal-window">Standard Hours</span>
+            </div>
+            <div class="p-2.5 rounded bg-[#181512] border border-[#2a2520]">
+              <span class="text-[10px] text-[#9a9188] block">Audited Ledger Rate</span>
+              <span class="font-medium text-[#c8a96e] font-serif font-bold" id="metric-ledger-rate">--</span>
             </div>
           </div>
-          <span id="detail-stock-qty" class="text-sm text-slate-600 font-medium">14 units in stock</span>
         </div>
 
-        <!-- Description -->
+        <div class="flex items-center justify-between p-3.5 rounded border border-[#2a2520] bg-[#100e0c]">
+          <div class="flex items-center gap-2 text-xs" id="detail-stock-badge">
+            <span class="pulse-indicator"></span>
+            <span class="text-[#c8a96e] font-semibold">Available for Immediate 20-Min Delivery</span>
+          </div>
+          <span class="text-[11px] text-[#9a9188]">Local Hub #04</span>
+        </div>
+
         <div>
-          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">About this item</h3>
-          <p id="detail-product-desc" class="text-base text-slate-600 leading-relaxed">
-            Product description details.
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-[#c8a96e] mb-2">Provenance & Details</h3>
+          <p class="text-sm text-[#9a9188] leading-relaxed" id="detail-description">
+            Product specifications and editorial notes will load here.
           </p>
         </div>
 
-        <!-- Quantity Counter & Actions -->
-        <div class="space-y-4 pt-4 border-t border-slate-100">
+        <div class="space-y-4 pt-4 border-t border-[#2a2520]">
           <div class="flex items-center gap-4">
-            <label class="text-sm font-semibold text-slate-700">Quantity:</label>
-            <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
-              <button onclick="ProductDetailModule.updateQty(-1)" class="w-9 h-9 flex items-center justify-center hover:bg-slate-100 text-slate-700 font-bold">-</button>
-              <span id="detail-qty-input" class="w-10 text-center text-sm font-semibold">1</span>
-              <button onclick="ProductDetailModule.updateQty(1)" class="w-9 h-9 flex items-center justify-center hover:bg-slate-100 text-slate-700 font-bold">+</button>
+            <span class="text-xs font-semibold uppercase tracking-wider text-[#e8e2d9]">Quantity:</span>
+            <div class="flex items-center border border-[#2a2520] rounded bg-[#0a0908]">
+              <button type="button" onclick="ProductDetailModule.updateQty(-1)"
+                class="w-9 h-9 flex items-center justify-center text-[#e8e2d9] hover:bg-[#1a1714] hover:text-[#c8a96e] transition-colors cursor-pointer">
+                −
+              </button>
+              <input type="number" id="detail-qty-input" value="1" min="1"
+                class="w-12 text-center bg-transparent border-none text-xs font-bold text-[#e8e2d9] focus:outline-none"
+                readonly />
+              <button type="button" onclick="ProductDetailModule.updateQty(1)"
+                class="w-9 h-9 flex items-center justify-center text-[#e8e2d9] hover:bg-[#1a1714] hover:text-[#c8a96e] transition-colors cursor-pointer">
+                +
+              </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <button
-              onclick="ProductDetailModule.addToCart()"
-              class="btn-secondary py-3 text-sm justify-center font-bold"
-            >
-              Add to Cart
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="button" onclick="ProductDetailModule.addToCart()"
+              class="btn-primary flex-1 py-3 text-xs tracking-wider cursor-pointer">
+              Add to Shopping Cart
             </button>
-            <button
-              onclick="ProductDetailModule.buyNow()"
-              class="btn-primary py-3 text-sm justify-center font-bold"
-            >
-              Buy Now →
+            <button type="button" onclick="ProductDetailModule.buyNow()"
+              class="btn-secondary py-3 px-6 text-xs tracking-wider cursor-pointer text-[#c8a96e] border-[#c8a96e]/40 hover:border-[#c8a96e]">
+              Instant Checkout
             </button>
-            <button
-              id="detail-save-btn"
-              onclick="ProductDetailModule.toggleSave()"
-              class="btn-secondary py-3 text-sm justify-center font-bold flex items-center gap-1.5"
-              title="Save to Wishlist"
-            >
-              <span id="detail-save-icon">🤍</span>
-              <span id="detail-save-text">Save</span>
+            <button type="button" onclick="ProductDetailModule.toggleSave()"
+              class="w-11 h-11 rounded border border-[#2a2520] hover:border-[#b89355] bg-[#131110] text-[#c8a96e] hover:text-[#b89355] flex items-center justify-center text-sm transition-colors cursor-pointer"
+              title="Save to Wishlist">
+              <span id="detail-save-icon">
+                <svg class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" stroke-width="1.5"
+                  viewBox="0 0 24 24">
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                  </path>
+                </svg>
+              </span>
             </button>
           </div>
         </div>
 
-        <!-- Verified Seller Box -->
-        <div class="p-4 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-sm">
-          <div>
-            <div class="text-slate-400 text-xs">Sold by</div>
-            <strong id="seller-company-name" class="text-slate-900 text-base">Seller Name</strong>
-            <div class="text-slate-500 text-xs mt-0.5">GSTIN: <span id="seller-gstin">29ABCDE1234F1Z5</span></div>
+        <div class="clean-card p-4 flex items-center justify-between border border-[#2a2520] bg-[#12100e]">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded bg-[#1c1916] text-[#c8a96e] flex items-center justify-center font-bold text-sm border border-[#2a2520]">
+              <svg class="w-5 h-5 text-[#c8a96e]" fill="none" stroke="currentColor" stroke-width="1.5"
+                viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-[#e8e2d9]" id="detail-seller-name">Apex Tech Store</span>
+                <span class="badge badge-gold text-[9px] py-0.5 px-1.5">GSTIN Verified</span>
+              </div>
+              <span class="text-[11px] text-[#9a9188]" id="detail-seller-gstin">29ABCDE1234F1Z5</span>
+            </div>
           </div>
-          <div class="text-right">
-            <span class="badge badge-blue">Verified Merchant</span>
-          </div>
+          <span class="text-xs text-[#c8a96e] font-semibold">100% Fulfillment</span>
         </div>
 
       </div>
 
     </div>
 
-    <!-- BOTTOM SECTION: Price History (Price Ledger in Rupees) -->
-    <div class="clean-card p-6 sm:p-8 space-y-4">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+    <!-- Verified Buyer Reviews Section -->
+    <section class="space-y-6 pt-10 border-t border-[#2a2520]" id="product-reviews-section">
+      <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 class="text-xl font-bold text-slate-900">Price History (Price Ledger)</h2>
-          <p class="text-sm text-slate-500">Transparent pricing tracking in Indian Rupees (₹) to ensure fair value</p>
+          <span class="text-xs text-[#c8a96e] tracking-widest uppercase font-semibold block mb-0.5">Verified Customer
+            Feedback</span>
+          <h2 class="text-2xl font-display text-[#e8e2d9]">Customer Reviews & Ratings</h2>
         </div>
-        <span class="badge badge-green text-xs">Lowest Price Guaranteed</span>
+        <div id="review-eligibility-prompt"></div>
       </div>
 
-      <!-- Canvas Chart -->
-      <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-        <canvas id="price-ledger-canvas"></canvas>
+      <div id="product-reviews-container" class="space-y-6">
+        <!-- Populated via ProductDetailModule -->
+      </div>
+    </section>
+
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs text-[#c8a96e] tracking-widest uppercase font-semibold block mb-0.5">Complementary
+            Pieces</span>
+          <h2 class="text-2xl font-display text-[#e8e2d9]">Related Products</h2>
+        </div>
+        <a href="products.html"
+          class="text-xs tracking-wider uppercase font-semibold text-[#c8a96e] hover:text-[#e8c98e]">Browse Catalog
+          →</a>
       </div>
 
-      <!-- Price Ledger Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="text-slate-500 border-b border-slate-200 font-medium">
-            <tr>
-              <th class="py-3">Date & Time</th>
-              <th class="py-3">Recorded Price (₹)</th>
-              <th class="py-3">Adjustment Reason</th>
-            </tr>
-          </thead>
-          <tbody id="price-ledger-tbody" class="divide-y divide-slate-100">
-            <!-- Dynamically populated via ProductDetailModule -->
-          </tbody>
-        </table>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="related-products-container">
+
       </div>
-    </div>
+    </section>
 
   </main>
 
-  <!-- CLEAN FOOTER -->
-  <footer class="bg-white border-t border-slate-200 mt-16 py-10 text-sm text-slate-500">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <span class="font-bold text-slate-900 text-base">OmniCart Marketplace</span>
-        <span>•</span>
-        <span>Fast & Reliable Online Shopping</span>
-      </div>
-      <div class="flex items-center gap-6">
-        <a href="index.html" class="hover:underline">Home</a>
-        <a href="products.html" class="hover:underline">Catalog</a>
-        <a href="cart.html" class="hover:underline">Cart</a>
-        <a href="orders.html" class="hover:underline">My Orders</a>
-      </div>
-    </div>
-  </footer>
+  <div id="auth-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+    <div class="relative w-full max-w-md bg-[#131110] rounded border border-[#2a2520] p-6 sm:p-8 shadow-2xl">
+      <button onclick="AuthModule.closeAuthModal()"
+        class="absolute top-4 right-4 text-[#9a9188] hover:text-[#e8e2d9] text-xl font-bold cursor-pointer">✕</button>
 
-  <!-- CLEAN LOGIN MODAL -->
-  <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
-    <div class="relative w-full max-w-md bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-2xl">
-      <button onclick="AuthModule.closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-xl font-bold">✕</button>
-
-      <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 mb-5 text-xs">
-        <button id="modal-tab-buyer" onclick="AuthModule.setModalTab('buyer')" class="py-2.5 rounded-lg font-semibold transition-all bg-white text-blue-700 shadow-xs border border-slate-200">Customer Access</button>
-        <button id="modal-tab-seller" onclick="AuthModule.setModalTab('seller')" class="py-2.5 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-900">Seller Portal</button>
+      <div class="grid grid-cols-2 gap-2 p-1 rounded bg-[#0a0908] border border-[#2a2520] mb-5 text-xs">
+        <button id="modal-tab-buyer" onclick="AuthModule.setModalTab('buyer')"
+          class="py-2.5 rounded font-semibold transition-all bg-[#1c1916] text-[#c8a96e] border border-[#c8a96e]/30 cursor-pointer">Customer
+          Access</button>
+        <button id="modal-tab-seller" onclick="AuthModule.setModalTab('seller')"
+          class="py-2.5 rounded font-medium transition-all text-[#9a9188] hover:text-[#e8e2d9] cursor-pointer">Seller
+          Portal</button>
       </div>
 
       <div id="auth-modal-form-container"></div>
     </div>
   </div>
 
-  <!-- JAVASCRIPT MODULES -->
-  <script src="js/data-store.js"></script>
-  <script src="js/ui-module.js"></script>
-  <script src="js/auth-module.js"></script>
-  <script src="js/visual-search-module.js"></script>
-  <script src="js/product-detail-module.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/product-embeddings-data.js?v=31.0"></script>
+  <script src="js/data-store.js?v=31.0"></script>
+  <script src="js/ui-module.js?v=31.0"></script>
+  <script src="js/auth-module.js?v=31.0"></script>
+  <script src="js/visual-search-module.js?v=31.0"></script>
+  <script src="js/product-detail-module.js?v=31.0"></script>
+  <script src="js/app.js?v=31.0"></script>
+
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       ProductDetailModule.init();
     });
   </script>
 </body>
+
 </html>

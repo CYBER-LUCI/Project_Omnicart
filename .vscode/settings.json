@@ -1,9 +1,28 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/backend"
+        "${workspaceFolder}/Visual Search"
     ],
     "python.autoComplete.extraPaths": [
-        "${workspaceFolder}/backend"
+        "${workspaceFolder}/Visual Search"
+    ],
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "OmniDB Conn",
+            "database": "mysql",
+            "username": "root",
+            "password": "root"
+        }
     ]
 }

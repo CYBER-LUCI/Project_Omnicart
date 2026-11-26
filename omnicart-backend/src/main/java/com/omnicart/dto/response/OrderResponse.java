@@ -8,6 +8,9 @@ public class OrderResponse {
     private Long id;
     private Long customerId;
     private String customerName;
+    private String recipientName;
+    private String deliveryAddress;
+
     private String shippingStatus;
     private BigDecimal totalAmount;
     private LocalDateTime orderDate;
@@ -21,6 +24,12 @@ public class OrderResponse {
 
     public Long getCustomerId() { return customerId; }
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
+
+    public String getRecipientName() { return recipientName; }
+    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
 
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }

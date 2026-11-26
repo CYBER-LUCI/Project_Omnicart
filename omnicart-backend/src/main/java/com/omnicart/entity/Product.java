@@ -28,6 +28,12 @@ public class Product {
     @Column(name = "StockQuantity", nullable = false)
     private Integer stockQuantity = 0;
 
+    @Column(name = "MinFloorPrice", precision = 12, scale = 2)
+    private java.math.BigDecimal minFloorPrice;
+
+    @Column(name = "MaxCeilingPrice", precision = 12, scale = 2)
+    private java.math.BigDecimal maxCeilingPrice;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SellerID", nullable = false)
     private Seller seller;
@@ -42,7 +48,7 @@ public class Product {
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private ProductEmbeddings embedding;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product")
     @OrderBy("recordedAt DESC, id DESC")
     private List<PriceLedger> priceLedger = new ArrayList<>();
 
@@ -93,4 +99,10 @@ public class Product {
         images.add(image);
         image.setProduct(this);
     }
+
+    public java.math.BigDecimal getMinFloorPrice() { return minFloorPrice; }
+    public void setMinFloorPrice(java.math.BigDecimal minFloorPrice) { this.minFloorPrice = minFloorPrice; }
+
+    public java.math.BigDecimal getMaxCeilingPrice() { return maxCeilingPrice; }
+    public void setMaxCeilingPrice(java.math.BigDecimal maxCeilingPrice) { this.maxCeilingPrice = maxCeilingPrice; }
 }

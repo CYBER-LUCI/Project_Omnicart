@@ -30,6 +30,18 @@ public class PriceLedger {
     @Column(name = "PriceFluctuation", nullable = false, precision = 12, scale = 2, updatable = false)
     private BigDecimal priceFluctuation = BigDecimal.ZERO;
 
+    @Column(name = "DemandFactor", precision = 5, scale = 4)
+    private BigDecimal demandFactor = BigDecimal.valueOf(1.0000);
+
+    @Column(name = "ScarcityFactor", precision = 5, scale = 4)
+    private BigDecimal scarcityFactor = BigDecimal.valueOf(1.0000);
+
+    @Column(name = "CompetitionFactor", precision = 5, scale = 4)
+    private BigDecimal competitionFactor = BigDecimal.valueOf(1.0000);
+
+    @Column(name = "ChangeReason", length = 500)
+    private String changeReason;
+
     public PriceLedger() {}
 
     public PriceLedger(Product product, PriceLedgerSource source, BigDecimal price, BigDecimal priceFluctuation) {
@@ -37,6 +49,19 @@ public class PriceLedger {
         this.source = source;
         this.price = price;
         this.priceFluctuation = priceFluctuation != null ? priceFluctuation : BigDecimal.ZERO;
+        this.recordedAt = LocalDateTime.now();
+    }
+
+    public PriceLedger(Product product, PriceLedgerSource source, BigDecimal price, BigDecimal priceFluctuation,
+                       BigDecimal demandFactor, BigDecimal scarcityFactor, BigDecimal competitionFactor, String changeReason) {
+        this.product = product;
+        this.source = source;
+        this.price = price;
+        this.priceFluctuation = priceFluctuation != null ? priceFluctuation : BigDecimal.ZERO;
+        this.demandFactor = demandFactor != null ? demandFactor : BigDecimal.valueOf(1.0000);
+        this.scarcityFactor = scarcityFactor != null ? scarcityFactor : BigDecimal.valueOf(1.0000);
+        this.competitionFactor = competitionFactor != null ? competitionFactor : BigDecimal.valueOf(1.0000);
+        this.changeReason = changeReason;
         this.recordedAt = LocalDateTime.now();
     }
 
@@ -57,4 +82,16 @@ public class PriceLedger {
 
     public BigDecimal getPriceFluctuation() { return priceFluctuation; }
     public void setPriceFluctuation(BigDecimal priceFluctuation) { this.priceFluctuation = priceFluctuation; }
+
+    public BigDecimal getDemandFactor() { return demandFactor; }
+    public void setDemandFactor(BigDecimal demandFactor) { this.demandFactor = demandFactor; }
+
+    public BigDecimal getScarcityFactor() { return scarcityFactor; }
+    public void setScarcityFactor(BigDecimal scarcityFactor) { this.scarcityFactor = scarcityFactor; }
+
+    public BigDecimal getCompetitionFactor() { return competitionFactor; }
+    public void setCompetitionFactor(BigDecimal competitionFactor) { this.competitionFactor = competitionFactor; }
+
+    public String getChangeReason() { return changeReason; }
+    public void setChangeReason(String changeReason) { this.changeReason = changeReason; }
 }

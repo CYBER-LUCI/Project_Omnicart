@@ -1,5 +1,7 @@
 package com.omnicart.service.impl;
 
+import java.util.Optional;
+import java.util.List;
 import com.omnicart.dto.request.CustomerCreateRequest;
 import com.omnicart.dto.request.CustomerUpdateRequest;
 import com.omnicart.dto.request.EmailRequest;
@@ -15,6 +17,7 @@ import com.omnicart.entity.CustomerEmail;
 import com.omnicart.entity.CustomerPhone;
 import com.omnicart.exception.CustomerNotFoundException;
 import com.omnicart.exception.DuplicateEmailException;
+import com.omnicart.exception.DuplicatePhoneException;
 import com.omnicart.exception.ResourceNotFoundException;
 import com.omnicart.mapper.AddressMapper;
 import com.omnicart.mapper.CustomerMapper;
@@ -103,9 +106,74 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
 
-        customer.setFirstName(request.getFirstName());
-        customer.setLastName(request.getLastName());
-        Customer updated = customerRepository.save(customer);
+        if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+            customer.setFirstName(request.getFirstName().trim());
+        }
+        if (request.getLastName() != null && !request.getLastName().isBlank()) {
+            customer.setLastName(request.getLastName().trim());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            customer.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            String newEmail = request.getEmail().trim().toLowerCase();
+            Optional<CustomerEmail> existingWithEmail = customerEmailRepository.findByEmailAddressIgnoreCase(newEmail);
+            if (existingWithEmail.isPresent() && !existingWithEmail.get().getCustomer().getId().equals(id)) {
+                throw new DuplicateEmailException(newEmail);
+            }
+
+            if (existingWithEmail.isPresent() && existingWithEmail.get().getCustomer().getId().equals(id)) {
+                CustomerEmail existing = existingWithEmail.get();
+                for (CustomerEmail e : customer.getEmails()) {
+                    e.setIsPrimary(e.getId() != null && e.getId().equals(existing.getId()));
+                }
+            } else {
+                CustomerEmail primaryEmail = customer.getEmails().stream()
+                        .filter(e -> Boolean.TRUE.equals(e.getIsPrimary()))
+                        .findFirst()
+                        .orElse(customer.getEmails().isEmpty() ? null : customer.getEmails().get(0));
+
+                if (primaryEmail != null) {
+                    primaryEmail.setEmailAddress(newEmail);
+                    primaryEmail.setIsPrimary(true);
+                } else {
+                    CustomerEmail newCustEmail = new CustomerEmail(customer, newEmail, true);
+                    customer.addEmail(newCustEmail);
+                }
+
+                for (CustomerEmail other : customer.getEmails()) {
+                    if (primaryEmail != null && other != primaryEmail && Boolean.TRUE.equals(other.getIsPrimary())) {
+                        other.setIsPrimary(false);
+                    }
+                }
+            }
+        }
+
+        if (request.getPhone() != null && !request.getPhone().isBlank()) {
+            String newPhone = request.getPhone().trim();
+            CustomerPhone primaryPhone = customer.getPhones().stream()
+                    .filter(p -> Boolean.TRUE.equals(p.getIsPrimary()))
+                    .findFirst()
+                    .orElse(customer.getPhones().isEmpty() ? null : customer.getPhones().get(0));
+
+            if (primaryPhone != null) {
+                primaryPhone.setPhoneNumber(newPhone);
+                primaryPhone.setIsPrimary(true);
+            } else {
+                CustomerPhone newCustPhone = new CustomerPhone(customer, newPhone, true);
+                customer.addPhone(newCustPhone);
+            }
+
+            for (CustomerPhone other : customer.getPhones()) {
+                if (primaryPhone != null && other != primaryPhone && Boolean.TRUE.equals(other.getIsPrimary())) {
+                    other.setIsPrimary(false);
+                }
+            }
+        }
+
+        Customer updated = customerRepository.saveAndFlush(customer);
         return CustomerMapper.toResponse(updated);
     }
 
@@ -127,7 +195,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public CustomerResponse addEmail(Long customerId, EmailRequest request) {
+    public CustomerEmailResponse addEmail(Long customerId, EmailRequest request) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
@@ -136,9 +204,10 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         CustomerEmail email = new CustomerEmail(customer, request.getEmailAddress(), request.getIsPrimary());
-        customerEmailRepository.save(email);
-        customer.addEmail(email);
-        return CustomerMapper.toResponse(customer);
+        CustomerEmail saved = customerEmailRepository.save(email);
+        customer.addEmail(saved);
+        customerRepository.save(customer);
+        return new CustomerEmailResponse(saved.getId(), customerId, saved.getEmailAddress(), saved.getIsPrimary(), saved.getCreatedAt());
     }
 
     @Override
@@ -156,25 +225,72 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public void removeEmail(Long customerId, Long emailId) {
-        CustomerEmail email = customerEmailRepository.findById(emailId)
-                .orElseThrow(() -> new ResourceNotFoundException("Email not found with ID: " + emailId));
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
-        if (!email.getCustomer().getId().equals(customerId)) {
-            throw new ResourceNotFoundException("Email does not belong to customer: " + customerId);
+        List<CustomerEmail> emails = customerEmailRepository.findByCustomerId(customerId);
+        CustomerEmail target = emails.stream()
+                .filter(e -> e.getId().equals(emailId))
+                .findFirst()
+                .orElse(null);
+
+        if (target != null) {
+            customer.removeEmail(target);
+            customerEmailRepository.delete(target);
+            customerRepository.save(customer);
+        } else {
+            customerEmailRepository.findById(emailId).ifPresent(e -> {
+                if (e.getCustomer() != null && e.getCustomer().getId().equals(customerId)) {
+                    customer.removeEmail(e);
+                    customerEmailRepository.delete(e);
+                    customerRepository.save(customer);
+                }
+            });
         }
-        customerEmailRepository.delete(email);
     }
 
     @Override
     @Transactional
-    public CustomerResponse addPhone(Long customerId, PhoneRequest request) {
+    public void removeEmailByAddress(Long customerId, String emailAddress) {
+        if (emailAddress == null || emailAddress.trim().isEmpty()) return;
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
+        String clean = emailAddress.trim().toLowerCase();
+        List<CustomerEmail> emails = customerEmailRepository.findByCustomerId(customerId);
+        for (CustomerEmail e : emails) {
+            if (e.getEmailAddress() != null && e.getEmailAddress().trim().equalsIgnoreCase(clean)) {
+                customer.removeEmail(e);
+                customerEmailRepository.delete(e);
+            }
+        }
+        customerRepository.save(customer);
+    }
+
+    @Override
+    @Transactional
+    public CustomerPhoneResponse addPhone(Long customerId, PhoneRequest request) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+
+        List<CustomerPhone> existingPhones = customerPhoneRepository.findByCustomerId(customerId);
+        String cleanPhone = request.getPhoneNumber().replaceAll("\\D", "");
+        boolean isDuplicate = existingPhones.stream().anyMatch(p -> {
+            if (p.getPhoneNumber() == null) return false;
+            String existingDigits = p.getPhoneNumber().replaceAll("\\D", "");
+            return existingDigits.equals(cleanPhone) ||
+                   (existingDigits.length() >= 10 && cleanPhone.length() >= 10 &&
+                    existingDigits.endsWith(cleanPhone.substring(cleanPhone.length() - 10)));
+        });
+        if (isDuplicate) {
+            throw new DuplicatePhoneException(request.getPhoneNumber());
+        }
+
         CustomerPhone phone = new CustomerPhone(customer, request.getPhoneNumber(), request.getIsPrimary());
-        customerPhoneRepository.save(phone);
-        customer.addPhone(phone);
-        return CustomerMapper.toResponse(customer);
+        CustomerPhone saved = customerPhoneRepository.save(phone);
+        customer.addPhone(saved);
+        customerRepository.save(customer);
+        return new CustomerPhoneResponse(saved.getId(), customerId, saved.getPhoneNumber(), saved.getIsPrimary(), saved.getCreatedAt());
     }
 
     @Override
@@ -192,13 +308,49 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public void removePhone(Long customerId, Long phoneId) {
-        CustomerPhone phone = customerPhoneRepository.findById(phoneId)
-                .orElseThrow(() -> new ResourceNotFoundException("Phone not found with ID: " + phoneId));
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
 
-        if (!phone.getCustomer().getId().equals(customerId)) {
-            throw new ResourceNotFoundException("Phone does not belong to customer: " + customerId);
+        List<CustomerPhone> phones = customerPhoneRepository.findByCustomerId(customerId);
+        CustomerPhone target = phones.stream()
+                .filter(p -> p.getId().equals(phoneId))
+                .findFirst()
+                .orElse(null);
+
+        if (target != null) {
+            customer.removePhone(target);
+            customerPhoneRepository.delete(target);
+            customerRepository.save(customer);
+        } else {
+            customerPhoneRepository.findById(phoneId).ifPresent(p -> {
+                if (p.getCustomer() != null && p.getCustomer().getId().equals(customerId)) {
+                    customer.removePhone(p);
+                    customerPhoneRepository.delete(p);
+                    customerRepository.save(customer);
+                }
+            });
         }
-        customerPhoneRepository.delete(phone);
+    }
+
+    @Override
+    @Transactional
+    public void removePhoneByNumber(Long customerId, String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) return;
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+
+        String clean = phoneNumber.replaceAll("\\D", "");
+        List<CustomerPhone> phones = customerPhoneRepository.findByCustomerId(customerId);
+        for (CustomerPhone p : phones) {
+            if (p.getPhoneNumber() != null) {
+                String existingDigits = p.getPhoneNumber().replaceAll("\\D", "");
+                if (existingDigits.equals(clean) || (existingDigits.length() >= 10 && clean.length() >= 10 && existingDigits.endsWith(clean.substring(clean.length() - 10)))) {
+                    customer.removePhone(p);
+                    customerPhoneRepository.delete(p);
+                }
+            }
+        }
+        customerRepository.save(customer);
     }
 
     @Override

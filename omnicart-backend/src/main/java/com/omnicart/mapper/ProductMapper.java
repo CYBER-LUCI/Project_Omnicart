@@ -9,13 +9,17 @@ import java.util.stream.Collectors;
 
 public class ProductMapper {
     public static ProductResponse toResponse(Product product, BigDecimal currentPrice) {
+        return toResponse(product, currentPrice, 0.0, 0);
+    }
+
+    public static ProductResponse toResponse(Product product, BigDecimal currentPrice, Double rating, Integer reviewsCount) {
         if (product == null) return null;
         ProductResponse res = new ProductResponse();
         res.setId(product.getId());
         res.setName(product.getName());
         res.setDescription(product.getDescription());
         res.setStockQuantity(product.getStockQuantity());
-        
+
         if (product.getStockQuantity() == 0) {
             res.setStockStatus("OUT_OF_STOCK");
         } else if (product.getStockQuantity() <= 10) {
@@ -40,6 +44,10 @@ public class ProductMapper {
         }
         res.setHasEmbedding(product.getEmbedding() != null);
         res.setCreatedAt(product.getCreatedAt());
+        res.setMinFloorPrice(product.getMinFloorPrice());
+        res.setMaxCeilingPrice(product.getMaxCeilingPrice());
+        res.setRating(rating != null ? rating : 0.0);
+        res.setReviewsCount(reviewsCount != null ? reviewsCount : 0);
         return res;
     }
 }

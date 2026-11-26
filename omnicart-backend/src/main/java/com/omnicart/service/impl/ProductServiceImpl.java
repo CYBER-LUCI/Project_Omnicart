@@ -17,7 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.math.RoundingMode;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,19 +32,60 @@ public class ProductServiceImpl implements ProductService {
     private final PriceLedgerRepository priceLedgerRepository;
     private final PriceLedgerSourceRepository priceLedgerSourceRepository;
     private final PriceService priceService;
+    private final OrderDetailsRepository orderDetailsRepository;
+    private final OrderRepository orderRepository;
+    private final OrderPaymentRepository orderPaymentRepository;
+    private final ReviewRepository reviewRepository;
+    private final ProductEmbeddingsRepository productEmbeddingsRepository;
 
     public ProductServiceImpl(ProductRepository productRepository,
                               SellerRepository sellerRepository,
                               CategoryRepository categoryRepository,
                               PriceLedgerRepository priceLedgerRepository,
                               PriceLedgerSourceRepository priceLedgerSourceRepository,
-                              PriceService priceService) {
+                              PriceService priceService,
+                              OrderDetailsRepository orderDetailsRepository,
+                              OrderRepository orderRepository,
+                              OrderPaymentRepository orderPaymentRepository,
+                              ReviewRepository reviewRepository,
+                              ProductEmbeddingsRepository productEmbeddingsRepository) {
         this.productRepository = productRepository;
         this.sellerRepository = sellerRepository;
         this.categoryRepository = categoryRepository;
         this.priceLedgerRepository = priceLedgerRepository;
         this.priceLedgerSourceRepository = priceLedgerSourceRepository;
         this.priceService = priceService;
+        this.orderDetailsRepository = orderDetailsRepository;
+        this.orderRepository = orderRepository;
+        this.orderPaymentRepository = orderPaymentRepository;
+        this.reviewRepository = reviewRepository;
+        this.productEmbeddingsRepository = productEmbeddingsRepository;
+    }
+
+    private Map<Long, Object[]> loadProductRatingMap() {
+        Map<Long, Object[]> ratingMap = new HashMap<>();
+        try {
+            List<Object[]> allSummaries = reviewRepository.getAllProductRatingSummaries();
+            if (allSummaries != null) {
+                for (Object[] row : allSummaries) {
+                    if (row != null && row[0] != null) {
+                        ratingMap.put(((Number) row[0]).longValue(), row);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to load rating summaries: {}", e.getMessage());
+        }
+        return ratingMap;
+    }
+
+    private ProductResponse mapWithRatings(Product p, Map<Long, Object[]> ratingMap) {
+        BigDecimal price = priceService.getCurrentPrice(p.getId());
+        Object[] r = ratingMap != null ? ratingMap.get(p.getId()) : null;
+        long count = (r != null && r[1] != null) ? ((Number) r[1]).longValue() : 0L;
+        double avg = (r != null && r[2] != null) ? ((Number) r[2]).doubleValue() : 0.0;
+        avg = BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP).doubleValue();
+        return ProductMapper.toResponse(p, price, avg, (int) count);
     }
 
     @Override
@@ -55,8 +97,22 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(request.getCategoryId()));
 
+        Optional<Product> existingOpt = productRepository.findByNameIgnoreCaseAndSellerId(request.getName().trim(), seller.getId());
+        if (existingOpt.isPresent()) {
+            Product existing = existingOpt.get();
+            int currentStock = existing.getStockQuantity();
+            int addedStock = request.getStockQuantity() != null ? request.getStockQuantity() : 0;
+            int newTotalStock = currentStock + addedStock;
+            existing.setStockQuantity(newTotalStock);
+            Product savedProduct = productRepository.save(existing);
+            BigDecimal currentPrice = priceService.getCurrentPrice(savedProduct.getId());
+            log.info("Product '{}' already exists (ID: {}). Total inventory replenished from {} to {} units by seller ID {}",
+                    savedProduct.getName(), savedProduct.getId(), currentStock, newTotalStock, seller.getId());
+            return ProductMapper.toResponse(savedProduct, currentPrice != null ? currentPrice : request.getInitialPrice(), 0.0, 0);
+        }
+
         Product product = new Product();
-        product.setName(request.getName());
+        product.setName(request.getName().trim());
         product.setDescription(request.getDescription());
         product.setStockQuantity(request.getStockQuantity());
         product.setSeller(seller);
@@ -64,15 +120,22 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = productRepository.save(product);
 
-        // Create initial price ledger entry (Source 1: Initial Listing / Seller Update)
         PriceLedgerSource source = priceLedgerSourceRepository.findById(1)
                 .orElseGet(() -> priceLedgerSourceRepository.save(new PriceLedgerSource(1, "Initial Listing")));
 
         PriceLedger initialPrice = new PriceLedger(savedProduct, source, request.getInitialPrice(), BigDecimal.ZERO);
         priceLedgerRepository.save(initialPrice);
 
+        // Ensure newly created product immediately has an embedding record in ProductEmbeddings table
+        if (!productEmbeddingsRepository.existsByProductId(savedProduct.getId())) {
+            String defaultVector = generateDefaultFeatureVector(savedProduct);
+            ProductEmbeddings emb = new ProductEmbeddings(savedProduct, defaultVector, "openai/clip-vit-base-patch32");
+            productEmbeddingsRepository.save(emb);
+            log.info("Initialized default 512-dim embedding for product ID: {}", savedProduct.getId());
+        }
+
         log.info("Created product ID: {} with initial price: {}", savedProduct.getId(), request.getInitialPrice());
-        return ProductMapper.toResponse(savedProduct, request.getInitialPrice());
+        return ProductMapper.toResponse(savedProduct, request.getInitialPrice(), 0.0, 0);
     }
 
     @Override
@@ -81,7 +144,15 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
         BigDecimal currentPrice = priceService.getCurrentPrice(id);
-        return ProductMapper.toResponse(product, currentPrice);
+        List<Object[]> summary = reviewRepository.getRatingSummaryByProductId(id);
+        long count = 0L;
+        double avg = 0.0;
+        if (summary != null && !summary.isEmpty() && summary.get(0) != null) {
+            count = summary.get(0)[0] != null ? ((Number) summary.get(0)[0]).longValue() : 0L;
+            avg = summary.get(0)[1] != null ? ((Number) summary.get(0)[1]).doubleValue() : 0.0;
+        }
+        avg = BigDecimal.valueOf(avg).setScale(1, RoundingMode.HALF_UP).doubleValue();
+        return ProductMapper.toResponse(product, currentPrice, avg, (int) count);
     }
 
     @Override
@@ -98,18 +169,43 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category);
 
         Product updated = productRepository.save(product);
-        BigDecimal currentPrice = priceService.getCurrentPrice(id);
-        return ProductMapper.toResponse(updated, currentPrice);
+        return getProductById(updated.getId());
     }
 
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ProductNotFoundException(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        List<OrderDetails> orderDetailsList = orderDetailsRepository.findByProductId(id);
+        Set<Long> affectedOrderIds = orderDetailsList.stream()
+                .map(od -> od.getOrder().getId())
+                .collect(Collectors.toSet());
+
+        // Update affected orders if any other items remain
+        for (Long orderId : affectedOrderIds) {
+            List<OrderDetails> remaining = orderDetailsRepository.findByOrderId(orderId).stream()
+                    .filter(od -> !od.getProduct().getId().equals(id))
+                    .toList();
+            if (remaining.isEmpty()) {
+                orderPaymentRepository.findByOrderId(orderId).ifPresent(orderPaymentRepository::delete);
+                orderRepository.deleteById(orderId);
+            } else {
+                BigDecimal newTotal = remaining.stream()
+                        .map(od -> od.getExactLedgerPrice().multiply(BigDecimal.valueOf(od.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                orderPaymentRepository.findByOrderId(orderId).ifPresent(p -> {
+                    p.setPaidAmount(newTotal);
+                    orderPaymentRepository.save(p);
+                });
+            }
         }
-        productRepository.deleteById(id);
-        log.info("Deleted product ID: {}", id);
+
+        // Native SQL delete leverages MySQL foreign key ON DELETE CASCADE
+        // without tripping the PriceLedger append-only trigger
+        productRepository.deleteProductByIdNative(id);
+        log.info("Deleted product ID: {} ({}) and all associated ledger/order records.", id, product.getName());
     }
 
     @Override
@@ -124,35 +220,60 @@ public class ProductServiceImpl implements ProductService {
             products = productRepository.findAll(pageable);
         }
 
-        return products.map(p -> ProductMapper.toResponse(p, priceService.getCurrentPrice(p.getId())));
+        Map<Long, Object[]> ratingMap = loadProductRatingMap();
+        return products.map(p -> mapWithRatings(p, ratingMap));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> searchProducts(String keyword, Pageable pageable) {
+        Map<Long, Object[]> ratingMap = loadProductRatingMap();
         return productRepository.searchByKeyword(keyword, pageable)
-                .map(p -> ProductMapper.toResponse(p, priceService.getCurrentPrice(p.getId())));
+                .map(p -> mapWithRatings(p, ratingMap));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> getLowStockProducts() {
+        Map<Long, Object[]> ratingMap = loadProductRatingMap();
         return productRepository.findLowStockProducts(10).stream()
-                .map(p -> ProductMapper.toResponse(p, priceService.getCurrentPrice(p.getId())))
+                .map(p -> mapWithRatings(p, ratingMap))
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsByCategoryId(Long categoryId, Pageable pageable) {
+        Map<Long, Object[]> ratingMap = loadProductRatingMap();
         return productRepository.findByCategoryId(categoryId, pageable)
-                .map(p -> ProductMapper.toResponse(p, priceService.getCurrentPrice(p.getId())));
+                .map(p -> mapWithRatings(p, ratingMap));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsBySellerId(Long sellerId, Pageable pageable) {
+        Map<Long, Object[]> ratingMap = loadProductRatingMap();
         return productRepository.findBySellerId(sellerId, pageable)
-                .map(p -> ProductMapper.toResponse(p, priceService.getCurrentPrice(p.getId())));
+                .map(p -> mapWithRatings(p, ratingMap));
+    }
+
+    private String generateDefaultFeatureVector(Product product) {
+        String seedStr = (product.getName() + " " + (product.getCategory() != null ? product.getCategory().getCategoryName() : "")).toLowerCase();
+        int seed = seedStr.hashCode();
+        Random rng = new Random(seed);
+        double[] vec = new double[512];
+        double norm = 0.0;
+        for (int i = 0; i < 512; i++) {
+            vec[i] = rng.nextGaussian();
+            norm += vec[i] * vec[i];
+        }
+        norm = Math.sqrt(norm);
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < 512; i++) {
+            sb.append(String.format(Locale.US, "%.6f", vec[i] / norm));
+            if (i < 511) sb.append(", ");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }

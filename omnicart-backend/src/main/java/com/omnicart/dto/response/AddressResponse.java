@@ -9,6 +9,7 @@ public class AddressResponse {
     private String houseNumber;
     private String street;
     private String city;
+    private String state;
     private String pinCode;
     private LocalDateTime createdAt;
 
@@ -31,6 +32,9 @@ public class AddressResponse {
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
+
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
 
     public String getPinCode() { return pinCode; }
     public void setPinCode(String pinCode) { this.pinCode = pinCode; }

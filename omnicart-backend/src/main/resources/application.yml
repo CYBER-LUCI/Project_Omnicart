@@ -8,8 +8,8 @@ spring:
     name: omnicart-backend
   datasource:
     url: jdbc:mysql://localhost:3306/OmniCartDB?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
-    username: ${DB_USERNAME:omnicart_app}
-    password: ${DB_PASSWORD:AppSecurePass2024!}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
@@ -56,5 +56,5 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.omnicart: DEBUG
-    org.hibernate.SQL: INFO
+    com.omnicart: INFO
+    org.hibernate.SQL: WARN
